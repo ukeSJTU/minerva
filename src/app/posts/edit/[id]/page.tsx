@@ -3,17 +3,23 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
-  Container,
-  Typography,
-  TextField,
-  Button,
   Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Box,
-} from "@mui/material";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 
 const postSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -36,12 +42,10 @@ export default function EditPost({ params }: { params: { id: string } }) {
   const [errors, setErrors] = useState<Partial<PostFormData>>({});
 
   useEffect(() => {
-    // Fetch categories
     fetch("/api/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data));
 
-    // Fetch post data if editing
     if (params.id !== "new") {
       fetch(`/api/posts/${params.id}`)
         .then((res) => res.json())
@@ -76,66 +80,77 @@ export default function EditPost({ params }: { params: { id: string } }) {
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        {params.id === "new" ? "Create New Post" : "Edit Post"}
-      </Typography>
-      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          id="title"
-          label="Title"
-          name="title"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          error={!!errors.title}
-          helperText={errors.title}
-        />
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          multiline
-          rows={10}
-          id="content"
-          label="Content"
-          name="content"
-          value={formData.content}
-          onChange={(e) =>
-            setFormData({ ...formData, content: e.target.value })
-          }
-          error={!!errors.content}
-          helperText={errors.content}
-        />
-        <FormControl fullWidth margin="normal">
-          <InputLabel id="category-label">Category</InputLabel>
-          <Select
-            labelId="category-label"
-            id="category"
-            value={formData.categoryId}
-            label="Category"
-            onChange={(e) =>
-              setFormData({ ...formData, categoryId: e.target.value as number })
-            }
-          >
-            {categories.map((category) => (
-              <MenuItem key={category.id} value={category.id}>
-                {category.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          sx={{ mt: 3, mb: 2 }}
-        >
-          Save Post
-        </Button>
-      </Box>
-    </Container>
+    <main className="container mx-auto px-4 py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {params.id === "new" ? "Create New Post" : "Edit Post"}
+          </CardTitle>
+        </CardHeader>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="title" className="text-sm font-medium">
+                Title
+              </label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+              />
+              {errors.title && (
+                <p className="text-sm text-red-500">{errors.title}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="content" className="text-sm font-medium">
+                Content
+              </label>
+              <Textarea
+                id="content"
+                value={formData.content}
+                onChange={(e) =>
+                  setFormData({ ...formData, content: e.target.value })
+                }
+                rows={10}
+              />
+              {errors.content && (
+                <p className="text-sm text-red-500">{errors.content}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="category" className="text-sm font-medium">
+                Category
+              </label>
+              <Select
+                value={formData.categoryId.toString()}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, categoryId: parseInt(value) })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem
+                      key={category.id}
+                      value={category.id.toString()}
+                    >
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button type="submit">Save Post</Button>
+          </CardFooter>
+        </form>
+      </Card>
+    </main>
   );
 }

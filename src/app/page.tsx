@@ -1,13 +1,14 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
+import { Button } from "@/components/ui/button";
 import {
-  Container,
-  Typography,
-  Grid,
   Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
   CardContent,
-  CardActionArea,
-} from "@mui/material";
+  CardFooter,
+} from "@/components/ui/card";
 
 export default async function Home() {
   const posts = await prisma.post.findMany({
@@ -16,35 +17,28 @@ export default async function Home() {
   });
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h3" component="h1" gutterBottom>
-        Blog Posts
-      </Typography>
-      <Grid container spacing={3}>
+    <main className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold mb-8">Blog Posts</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {posts.map((post) => (
-          <Grid item xs={12} sm={6} md={4} key={post.id}>
-            <Card>
-              <CardActionArea component={Link} href={`/posts/${post.id}`}>
-                <CardContent>
-                  <Typography variant="h5" component="h2" gutterBottom>
-                    {post.title}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    Category: {post.category.name}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {new Date(post.createdAt).toLocaleDateString()}
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          </Grid>
+          <Card key={post.id}>
+            <CardHeader>
+              <CardTitle>{post.title}</CardTitle>
+              <CardDescription>Category: {post.category.name}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                {new Date(post.createdAt).toLocaleDateString()}
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button asChild>
+                <Link href={`/posts/${post.id}`}>Read More</Link>
+              </Button>
+            </CardFooter>
+          </Card>
         ))}
-      </Grid>
-    </Container>
+      </div>
+    </main>
   );
 }

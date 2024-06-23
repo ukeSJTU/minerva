@@ -1,6 +1,12 @@
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { Container, Typography, Paper } from "@mui/material";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 
 export default async function Post({ params }: { params: { id: string } }) {
   const post = await prisma.post.findUnique({
@@ -13,21 +19,19 @@ export default async function Post({ params }: { params: { id: string } }) {
   }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          {post.title}
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-          Category: {post.category.name}
-        </Typography>
-        <Typography variant="body1" paragraph>
-          {post.content}
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
-          Published on {new Date(post.createdAt).toLocaleDateString()}
-        </Typography>
-      </Paper>
-    </Container>
+    <main className="container mx-auto px-4 py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>{post.title}</CardTitle>
+          <CardDescription>Category: {post.category.name}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="prose max-w-none">{post.content}</div>
+          <p className="text-sm text-muted-foreground mt-4">
+            Published on {new Date(post.createdAt).toLocaleDateString()}
+          </p>
+        </CardContent>
+      </Card>
+    </main>
   );
 }
