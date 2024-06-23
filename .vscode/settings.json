@@ -1,0 +1,8 @@
+{
+    "conventionalCommits.scopes": [
+        "deps",
+        "ui",
+        "cfg",
+        "db"
+    ]
+}
