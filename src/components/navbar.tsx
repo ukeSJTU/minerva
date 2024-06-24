@@ -14,6 +14,7 @@ import {
 const navItems: { title: string; href: string }[] = [
   { title: "Home", href: "/" },
   { title: "Posts", href: "/posts" },
+  { title: "Series", href: "/series" },
   { title: "Admin", href: "/admin" },
 ];
 
