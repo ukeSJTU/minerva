@@ -42,6 +42,13 @@ export default function EditPost({ params }: { params: { id: string } }) {
   const [errors, setErrors] = useState<Partial<PostFormData>>({});
 
   useEffect(() => {
+    const auth = localStorage.getItem("adminAuth");
+    if (auth !== "true") {
+      router.push("/admin");
+    }
+  });
+
+  useEffect(() => {
     fetch("/api/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data));
