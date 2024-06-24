@@ -3,72 +3,92 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  const category1 = await prisma.category.upsert({
+  // Create categories
+  const techCategory = await prisma.category.upsert({
     where: { name: "Technology" },
     update: {},
     create: { name: "Technology" },
   });
 
-  const category2 = await prisma.category.upsert({
-    where: { name: "Travel" },
+  const gameCategory = await prisma.category.upsert({
+    where: { name: "Game Development" },
     update: {},
-    create: { name: "Travel" },
+    create: { name: "Game Development" },
   });
 
-  const post1 = await prisma.post.create({
+  // Create series
+  const swiftSeries = await prisma.series.create({
     data: {
-      title: "Introduction to Next.js",
-      content: `---
-title: "Introduction to Next.js"
-date: "2023-06-24"
----
-
-# Introduction to Next.js
-
-Next.js is a popular React framework that enables functionality such as server-side rendering and generating static websites for React based web applications.
-
-## Why use Next.js?
-
-- **Server-side rendering**: Improves performance and SEO
-- **Static site generation**: Creates fast, pre-rendered pages
-- **Easy page routing**: Simplifies navigation in your app
-
-Learn more about Next.js [here](https://nextjs.org/).
-`,
-      published: true,
-      categoryId: category1.id,
+      title: "A Practical Way to Learn Swift",
+      description: "Step-by-step guide to mastering Swift programming",
     },
   });
 
-  const post2 = await prisma.post.create({
+  const pygameSeries = await prisma.series.create({
     data: {
-      title: "Exploring Japan",
-      content: `---
-title: "Exploring Japan"
-date: "2023-06-25"
----
-
-# Exploring Japan
-
-Japan is a country of fascinating contrasts, where ancient traditions blend seamlessly with cutting-edge technology.
-
-## Must-visit places
-
-1. Tokyo
-2. Kyoto
-3. Mount Fuji
-4. Hiroshima
-
-![Mount Fuji](https://example.com/mount-fuji.jpg)
-
-Discover more about traveling in Japan on the [official tourism website](https://www.japan.travel/en/).
-`,
-      published: true,
-      categoryId: category2.id,
+      title: "Design a Snake Game with Pygame",
+      description: "Learn game development by creating a classic Snake game",
     },
   });
 
-  console.log({ category1, category2, post1, post2 });
+  // Create posts for Swift series
+  for (let i = 1; i <= 10; i++) {
+    await prisma.post.create({
+      data: {
+        title: `Swift Tutorial ${i}: ${getSwiftTopicForIndex(i)}`,
+        content: `This is the content for Swift tutorial ${i}...`,
+        published: true,
+        category: { connect: { id: techCategory.id } },
+        series: { connect: { id: swiftSeries.id } },
+        orderInSeries: i,
+      },
+    });
+  }
+
+  // Create posts for Pygame series
+  for (let i = 1; i <= 7; i++) {
+    await prisma.post.create({
+      data: {
+        title: `Pygame Tutorial ${i}: ${getPygameTopicForIndex(i)}`,
+        content: `This is the content for Pygame tutorial ${i}...`,
+        published: true,
+        category: { connect: { id: gameCategory.id } },
+        series: { connect: { id: pygameSeries.id } },
+        orderInSeries: i,
+      },
+    });
+  }
+
+  console.log("Seed data created");
+}
+
+function getSwiftTopicForIndex(index: number): string {
+  const topics = [
+    "Introduction to Swift",
+    "Variables and Constants",
+    "Control Flow",
+    "Functions and Closures",
+    "Classes and Structures",
+    "Protocols and Extensions",
+    "Error Handling",
+    "Concurrency",
+    "Memory Management",
+    "Advanced Topics",
+  ];
+  return topics[index - 1] || `Advanced Topic ${index - 10}`;
+}
+
+function getPygameTopicForIndex(index: number): string {
+  const topics = [
+    "Setting Up Pygame",
+    "Creating the Game Window",
+    "Drawing the Snake",
+    "Moving the Snake",
+    "Handling User Input",
+    "Adding Food and Collision Detection",
+    "Implementing Game Over and Scoring",
+  ];
+  return topics[index - 1] || `Additional Feature ${index - 7}`;
 }
 
 main()
