@@ -1,5 +1,5 @@
 import Link from "next/link";
-import prisma from "@/lib/prisma"; // Change this line
+import prisma from "@/lib/prisma";
 import {
   Card,
   CardHeader,

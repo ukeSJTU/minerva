@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import prisma from "@/lib/prisma"; // Change this line
+import prisma from "@/lib/prisma";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export default async function SeriesDetailPage({
