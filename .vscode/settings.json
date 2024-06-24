@@ -4,6 +4,7 @@
         "ui",
         "cfg",
         "db",
-        "api"
+        "api",
+        "admin"
     ]
 }
