@@ -1,13 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { CalendarIcon, EyeIcon, HeartIcon, ArrowRightIcon } from "lucide-react";
 import CategoryBadge from "../badges/category";
 
@@ -31,6 +24,8 @@ interface PostCardProps {
       name: string;
     };
     imageUrl?: string;
+    views?: number;
+    likes?: number;
   };
   imagePosition?: "left" | "right";
 }
@@ -43,54 +38,67 @@ const PostCard: React.FC<PostCardProps> = ({
   const isImageLeft = imagePosition === "left";
 
   return (
-    <Card className="flex flex-col md:flex-row items-center bg-card text-card-foreground shadow-sm rounded-xl overflow-hidden w-full max-w-[800px]">
-      <div className="md:w-1/3 hidden md:block">
-        <Image
-          src={imageUrl}
-          alt="Blog Post Image"
-          width={400}
-          height={400}
-          className="object-cover aspect-square"
-        />
-      </div>
-      <div className="md:w-2/3 p-6 md:p-8 flex flex-col gap-4">
-        <div>
-          <CategoryBadge name={post.category?.name || "Uncategorized"} />
+    <Card
+      className={`flex overflow-hidden w-full max-w-[800px] h-[200px] ${isImageLeft ? "flex-row" : "flex-row-reverse"}`}
+    >
+      <div
+        className={`relative w-1/3 ${isImageLeft ? "rounded-l-xl" : "rounded-r-xl"} overflow-hidden`}
+      >
+        <div className="absolute inset-0 group">
+          <Image
+            src={imageUrl}
+            alt="Blog Post Image"
+            layout="fill"
+            objectFit="cover"
+            className="transition-transform duration-300 group-hover:scale-105"
+          />
         </div>
-        <h3 className="text-2xl font-bold">
-          <Link href={`/posts/${post.id}`} prefetch={false}>
-            {post.title}
-          </Link>
-        </h3>
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4" />
-            <span>
+      </div>
+      <div
+        className={`w-2/3 p-6 flex flex-col justify-between items-start text-left`}
+      >
+        <div className="w-full">
+          <h3 className="text-xl font-bold line-clamp-2">
+            <Link href={`/posts/${post.id}`} className="hover:underline">
+              {post.title}
+            </Link>
+          </h3>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground my-2">
+            <span className="flex items-center gap-1 ">
+              <CalendarIcon className="w-4 h-4" />
               {new Date(post.createdAt).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
                 year: "numeric",
+                month: "short",
+                day: "numeric",
               })}
             </span>
+            {"|"}
+            <span className="flex items-center gap-1">
+              <EyeIcon className="w-4 h-4" />
+              {post.views || 0} views
+            </span>
+            {"|"}
+            <span className="flex items-center gap-1">
+              <HeartIcon className="w-4 h-4" />
+              {post.likes || 0} likes
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <EyeIcon className="w-4 h-4" />
-            <span>1,234 views</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <HeartIcon className="w-4 h-4" />
-            <span>456 likes</span>
-          </div>
+          <p className="text-muted-foreground text-sm line-clamp-2 mb-4">
+            {post.content}
+          </p>
         </div>
-        <p className="text-muted-foreground">{post.content.slice(0, 200)}...</p>
-        <Link
-          href={`/posts/${post.id}`}
-          className="inline-flex items-center gap-2 font-medium hover:underline"
-          prefetch={false}
+        <div
+          className={`flex flex-row items-center w-full justify-between ${isImageLeft ? "flex-row-reverse" : "flex-row"}`}
         >
-          Read More
-          <ArrowRightIcon className="w-4 h-4" />
-        </Link>
+          <CategoryBadge name={post.category?.name || "Uncategorized"} />
+          <Link
+            href={`/posts/${post.id}`}
+            className="inline-flex items-center gap-1 text-sm font-medium hover:underline"
+          >
+            Read More
+            <ArrowRightIcon className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
     </Card>
   );
