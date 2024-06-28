@@ -1,9 +1,16 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import prisma from "@/lib/prisma";
 import { HomepageBanner } from "@/components/banner";
 import ProfileCard from "@/components/profile_card";
+import PostCard from "@/components/posts/card";
 
-export default function Home() {
+export default async function Home() {
+  const posts = await prisma.post.findMany({
+    include: { category: true },
+    orderBy: { createdAt: "desc" },
+  });
+
   return (
     <main className="">
       <HomepageBanner
@@ -23,14 +30,15 @@ export default function Home() {
           />
         </div>
         <div className="w-2/3">
-          <h1 className="text-4xl font-bold mb-6">Welcome to Our Blog</h1>
-          <p className="text-xl mb-8">
-            Discover insightful articles and stay updated with the latest
-            trends.
-          </p>
-          <Button asChild>
-            <Link href="/posts">View All Posts</Link>
-          </Button>
+          <div className="flex flex-col space-y-6">
+            {posts.map((post, index) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                imagePosition={index % 2 === 0 ? "left" : "right"}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </main>
