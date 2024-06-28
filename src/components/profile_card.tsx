@@ -54,6 +54,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         </div>
       </CardContent>
       <CardFooter className="flex flex-col items-center">
+        {/* TODO: add a onClick event to the subscribe button*/}
         <Button className="w-full mb-4">Subscribe</Button>
         <div className="flex space-x-4">
           {/* TODO: need to add clickable external links to following icons. Example: click on github icon and jump to github profile/repo page */}
