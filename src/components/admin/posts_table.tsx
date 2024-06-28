@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import Link from "next/link";
 
 // Define your data type based on the schema
 type Post = {
@@ -114,7 +115,9 @@ export function PostsTable() {
     <div>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Posts</h2>
-        <Button>Create New Post</Button>
+        <Button>
+          <Link href="/admin/posts/create">Create New Post</Link>
+        </Button>
       </div>
       <Input
         placeholder="Filter posts..."
