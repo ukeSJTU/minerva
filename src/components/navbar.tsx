@@ -20,7 +20,7 @@ const navItems: { title: string; href: string }[] = [
 
 export function Navbar() {
   return (
-    <div className="fixed top-0 left-0 right-0 bg-background z-50 shadow-sm">
+    <div className="fixed top-0 left-0 right-0 bg-background z-50 shadow-sm h-[70px]">
       <div className="container mx-auto flex justify-between items-center py-4">
         <NavigationMenu>
           <NavigationMenuList>
