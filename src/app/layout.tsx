@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/navbar";
+import { HomepageBanner } from "@/components/banner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,6 +20,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Navbar />
+        <HomepageBanner
+          imageUrl="/images/banner_1.jpg"
+          title="Welcome to My Blog"
+          quote="A blog about web development and programming."
+        />
         <div className="pt-20">{children}</div>
       </body>
     </html>
