@@ -19,6 +19,7 @@ model Series {
   id          Int      @id @default(autoincrement())
   title       String
   description String?
+  slug        String   @unique
   posts       Post[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -28,6 +29,7 @@ model Post {
   id            Int      @id @default(autoincrement())
   title         String
   content       String
+  slug          String   @unique
   published     Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -36,10 +38,21 @@ model Post {
   series        Series?  @relation(fields: [seriesId], references: [id])
   seriesId      Int?
   orderInSeries Int?
+  views         Int      @default(0)
+  likes         Int      @default(0)
+  tags          Tag[]
 }
 
 model Category {
   id    Int    @id @default(autoincrement())
   name  String @unique
+  slug  String @unique
+  posts Post[]
+}
+
+model Tag {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  slug  String @unique
   posts Post[]
 }
