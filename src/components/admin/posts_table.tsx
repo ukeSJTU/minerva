@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   useReactTable,
   getCoreRowModel,
@@ -21,83 +22,106 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Link from "next/link";
+import { Post, Category, Series, Tag } from "@prisma/client";
 
-// Define your data type based on the schema
-type Post = {
-  id: number;
-  title: string;
-  content: string;
-  published: boolean;
-  createdAt: string;
-  updatedAt: string;
-  categoryId: number;
-  seriesId: number | null;
-  orderInSeries: number | null;
+type PostWithRelations = Post & {
+  category: Category;
+  series: Series | null;
+  tags: Tag[];
 };
 
-// Sample data (replace with actual data fetching)
-const data: Post[] = [
-  {
-    id: 1,
-    title: "First Post",
-    content: "Content 1",
-    published: true,
-    createdAt: "2024-06-28",
-    updatedAt: "2024-06-28",
-    categoryId: 1,
-    seriesId: null,
-    orderInSeries: null,
-  },
-  {
-    id: 2,
-    title: "Second Post",
-    content: "Content 2",
-    published: false,
-    createdAt: "2024-06-29",
-    updatedAt: "2024-06-29",
-    categoryId: 2,
-    seriesId: 1,
-    orderInSeries: 1,
-  },
-  // Add more sample data...
-];
-
-const columns: ColumnDef<Post>[] = [
-  {
-    accessorKey: "title",
-    header: "Title",
-  },
-  {
-    accessorKey: "published",
-    header: "Status",
-    cell: ({ row }) => (row.original.published ? "Published" : "Draft"),
-  },
-  {
-    accessorKey: "createdAt",
-    header: "Created At",
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => (
-      <div>
-        <Button variant="outline" size="sm" className="mr-2">
-          Edit
-        </Button>
-        <Button variant="destructive" size="sm">
-          Delete
-        </Button>
-      </div>
-    ),
-  },
-];
-
 export function PostsTable() {
+  const [posts, setPosts] = useState<PostWithRelations[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [filtering, setFiltering] = useState("");
 
+  const columns: ColumnDef<PostWithRelations>[] = [
+    {
+      accessorKey: "title",
+      header: "Title",
+    },
+    {
+      accessorKey: "published",
+      header: "Status",
+      cell: ({ row }) => (row.original.published ? "Published" : "Draft"),
+    },
+    {
+      accessorKey: "category.name",
+      header: "Category",
+    },
+    {
+      accessorKey: "series.title",
+      header: "Series",
+      cell: ({ row }) => row.original.series?.title || "N/A",
+    },
+    {
+      accessorKey: "views",
+      header: "Views",
+    },
+    {
+      accessorKey: "likes",
+      header: "Likes",
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Created At",
+      cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <div>
+          <Link href={`/admin/posts/edit/${row.original.id}`} passHref>
+            <Button variant="outline" size="sm" className="mr-2">
+              Edit
+            </Button>
+          </Link>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => handleDelete(row.original.id)}
+          >
+            Delete
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      const response = await fetch("/api/posts");
+      if (!response.ok) throw new Error("Failed to fetch posts");
+      const data: PostWithRelations[] = await response.json();
+      setPosts(data);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    }
+  };
+
+  const handleEdit = (id: number) => {
+    // Implement edit functionality
+    console.log("Edit post:", id);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (confirm("Are you sure you want to delete this post?")) {
+      try {
+        const response = await fetch(`/api/posts/${id}`, { method: "DELETE" });
+        if (!response.ok) throw new Error("Failed to delete post");
+        fetchPosts(); // Refresh the posts list
+      } catch (error) {
+        console.error("Error deleting post:", error);
+      }
+    }
+  };
+
   const table = useReactTable({
-    data,
+    data: posts,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -115,9 +139,11 @@ export function PostsTable() {
     <div>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Posts</h2>
-        <Button>
-          <Link href="/admin/posts/create">Create New Post</Link>
-        </Button>
+        <Link href={"/admin/posts/create"} passHref>
+          <Button variant="default" size="sm" className="mr-2">
+            Create New Post
+          </Button>
+        </Link>
       </div>
       <Input
         placeholder="Filter posts..."
