@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, List, ArrowUp } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowUp } from "lucide-react";
+import { SeriesDropdown } from "@/components/series_dropdown";
 
 interface SeriesInfo {
   id: number;
@@ -13,6 +14,7 @@ interface SeriesInfo {
   prevPost: { id: number; title: string } | null;
   nextPost: { id: number; title: string } | null;
   totalPosts: number;
+  posts: { id: number; title: string; orderInSeries: number }[];
 }
 
 export function DynamicIsland() {
@@ -42,9 +44,14 @@ export function DynamicIsland() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const getReadingProgress = () => {
-    // TODO: Implement logic to calculate reading progress based on scroll position
-    return 50; // Placeholder value for demonstration
+  const getSeriesProgress = () => {
+    if (seriesInfo) {
+      return Math.round(
+        ((seriesInfo.currentPost.orderInSeries - 1) / seriesInfo.totalPosts) *
+          100
+      );
+    }
+    return 0;
   };
 
   if (!seriesInfo) {
@@ -52,10 +59,12 @@ export function DynamicIsland() {
   }
 
   return (
-    <div className="fixed pt-[60px] mx-auto w-max top-4 bg-background/80 backdrop-blur-md shadow-md rounded-full px-4 py-2 flex items-center space-x-4 ">
-      <Button variant="ghost" size="icon">
-        <List className="h-4 w-4" />
-      </Button>
+    <div className="fixed pt-[60px] mx-auto w-max top-4 bg-background/80 backdrop-blur-md shadow-md rounded-full px-4 py-2 flex items-center space-x-4 z-50">
+      <SeriesDropdown
+        posts={seriesInfo.posts}
+        currentPostId={seriesInfo.currentPost.id}
+        seriesTitle={seriesInfo.title}
+      />
       <Link href={`/series/${seriesInfo.id}`}>
         <span className="text-sm font-bold">{seriesInfo.title}</span>
       </Link>
@@ -76,7 +85,7 @@ export function DynamicIsland() {
         )}
         <div className="relative">
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xs">{getReadingProgress()}%</span>
+            <span className="text-xs">{getSeriesProgress()}%</span>
           </div>
           <svg className="w-8 h-8 text-gray-300" viewBox="0 0 36 36">
             <path
@@ -95,7 +104,7 @@ export function DynamicIsland() {
               fill="none"
               stroke="currentColor"
               strokeWidth="3"
-              strokeDasharray={`${getReadingProgress()}, 100`}
+              strokeDasharray={`${getSeriesProgress()}, 100`}
             />
           </svg>
         </div>
