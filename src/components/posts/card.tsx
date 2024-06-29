@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { CalendarIcon, EyeIcon, HeartIcon, ArrowRightIcon } from "lucide-react";
 import CategoryBadge from "../badges/category";
 import { Post, Category } from "@prisma/client";
+import { Separator } from "../ui/separator";
 
 type Props = {
   post: Post & { category?: Category };
@@ -17,7 +18,7 @@ const PostCard: React.FC<Props> = ({ post, imagePosition = "left" }) => {
 
   return (
     <Card
-      className={`flex overflow-hidden w-full max-w-[800px] h-[200px] ${isImageLeft ? "flex-row" : "flex-row-reverse"}`}
+      className={`flex overflow-hidden w-full max-w-[800px]  ${isImageLeft ? "flex-row" : "flex-row-reverse"} rounded-xl`}
     >
       <div
         className={`relative w-1/3 ${isImageLeft ? "rounded-l-xl" : "rounded-r-xl"} overflow-hidden`}
@@ -33,7 +34,7 @@ const PostCard: React.FC<Props> = ({ post, imagePosition = "left" }) => {
         </div>
       </div>
       <div
-        className={`w-2/3 p-6 flex flex-col justify-between items-start text-left`}
+        className={`w-2/3 p-6 flex flex-col justify-between items-start text-left my-auto`}
       >
         <div className="w-full">
           <h3 className="text-xl font-bold line-clamp-2">
@@ -50,12 +51,12 @@ const PostCard: React.FC<Props> = ({ post, imagePosition = "left" }) => {
                 day: "numeric",
               })}
             </span>
-            {"|"}
+            <Separator orientation="vertical" className="mx-2 h-4" />
             <span className="flex items-center gap-1">
               <EyeIcon className="w-4 h-4" />
               {post.views || 0} views
             </span>
-            {"|"}
+            <Separator orientation="vertical" className="mx-2 h-4" />
             <span className="flex items-center gap-1">
               <HeartIcon className="w-4 h-4" />
               {post.likes || 0} likes
