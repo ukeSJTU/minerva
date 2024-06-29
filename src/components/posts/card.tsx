@@ -3,38 +3,16 @@ import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { CalendarIcon, EyeIcon, HeartIcon, ArrowRightIcon } from "lucide-react";
 import CategoryBadge from "../badges/category";
+import { Post, Category } from "@prisma/client";
 
-interface PostCardProps {
-  post: {
-    id: number;
-    title: string;
-    content: string;
-    published: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    categoryId: number;
-    seriesId: number | null;
-    orderInSeries: number | null;
-    category?: {
-      id: number;
-      name: string;
-    };
-    series?: {
-      id: number;
-      name: string;
-    };
-    imageUrl?: string;
-    views?: number;
-    likes?: number;
-  };
+type Props = {
+  post: Post & { category?: Category };
   imagePosition?: "left" | "right";
-}
+};
 
-const PostCard: React.FC<PostCardProps> = ({
-  post,
-  imagePosition = "left",
-}) => {
-  const imageUrl = post.imageUrl || "/images/moebius_1.jpg";
+const PostCard: React.FC<Props> = ({ post, imagePosition = "left" }) => {
+  //TODO: use the actual imageUrl field from the post
+  const imageUrl = "/images/moebius_1.jpg"; // post.imageUrl || "/images/moebius_1.jpg";
   const isImageLeft = imagePosition === "left";
 
   return (
