@@ -2,6 +2,7 @@ import Heading from "@/components/markdown/heading";
 import Link from "@/components/markdown/link";
 import Image from "@/components/markdown/image";
 import CodeBlock from "@/components/markdown/codeblock";
+import InlineCode from "@/components/markdown/inlinecode";
 
 export const components = {
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
@@ -24,7 +25,17 @@ export const components = {
   ),
   a: Link as React.ComponentType<React.AnchorHTMLAttributes<HTMLAnchorElement>>,
   img: Image as React.ComponentType<React.ImgHTMLAttributes<HTMLImageElement>>,
-  code: CodeBlock as React.ComponentType<React.HTMLAttributes<HTMLElement>>,
+  code: ({ className, children, ...props }: any) => {
+    const match = /language-(\w+)/.exec(className || "");
+    const inline = !match;
+    return inline ? (
+      <InlineCode {...props}>{children}</InlineCode>
+    ) : (
+      <CodeBlock className={className} {...props}>
+        {children}
+      </CodeBlock>
+    );
+  },
   pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
     <pre className="overflow-x-auto" {...props} />
   ),
