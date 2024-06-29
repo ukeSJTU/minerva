@@ -19,7 +19,6 @@ const InlineCode: React.FC<InlineCodeProps> = ({ children }) => {
         padding: "0.2em 0.4em",
         margin: 0,
         fontSize: "85%",
-        backgroundColor: "rgba(110, 118, 129, 0.4)",
         borderRadius: "6px",
       }}
     >
