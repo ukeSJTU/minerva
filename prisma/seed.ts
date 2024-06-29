@@ -7,13 +7,13 @@ async function main() {
   const techCategory = await prisma.category.upsert({
     where: { name: "Technology" },
     update: {},
-    create: { name: "Technology" },
+    create: { name: "Technology", slug: "technology" },
   });
 
   const gameCategory = await prisma.category.upsert({
     where: { name: "Game Development" },
     update: {},
-    create: { name: "Game Development" },
+    create: { name: "Game Development", slug: "game-development" },
   });
 
   // Create series
@@ -21,6 +21,7 @@ async function main() {
     data: {
       title: "A Practical Way to Learn Swift",
       description: "Step-by-step guide to mastering Swift programming",
+      slug: "learn-swift",
     },
   });
 
@@ -28,6 +29,7 @@ async function main() {
     data: {
       title: "Design a Snake Game with Pygame",
       description: "Learn game development by creating a classic Snake game",
+      slug: "pygame-snake",
     },
   });
 
@@ -36,11 +38,26 @@ async function main() {
     await prisma.post.create({
       data: {
         title: `Swift Tutorial ${i}: ${getSwiftTopicForIndex(i)}`,
-        content: `This is the content for Swift tutorial ${i}...`,
+        content: `
+# Swift Tutorial ${i}: ${getSwiftTopicForIndex(i)}
+
+This is the content for Swift tutorial ${i}. Below is a code example:
+
+\`\`\`swift
+// This is a Swift code example
+let message = "Hello, Swift!"
+print(message)
+\`\`\`
+
+> "Learning Swift can be fun and rewarding!" - Swift Community
+
+And some additional information about the topic...
+        `,
         published: true,
         category: { connect: { id: techCategory.id } },
         series: { connect: { id: swiftSeries.id } },
         orderInSeries: i,
+        slug: `swift-tutorial-${i}`,
       },
     });
   }
@@ -50,11 +67,28 @@ async function main() {
     await prisma.post.create({
       data: {
         title: `Pygame Tutorial ${i}: ${getPygameTopicForIndex(i)}`,
-        content: `This is the content for Pygame tutorial ${i}...`,
+        content: `
+# Pygame Tutorial ${i}: ${getPygameTopicForIndex(i)}
+
+This is the content for Pygame tutorial ${i}. Below is a code example:
+
+\`\`\`python
+# This is a Pygame code example
+import pygame
+pygame.init()
+screen = pygame.display.set_mode((800, 600))
+pygame.display.set_caption("Snake Game")
+\`\`\`
+
+> "Creating games with Pygame is a great way to learn programming!" - Pygame Community
+
+And some additional information about the topic...
+        `,
         published: true,
         category: { connect: { id: gameCategory.id } },
         series: { connect: { id: pygameSeries.id } },
         orderInSeries: i,
+        slug: `pygame-tutorial-${i}`,
       },
     });
   }
