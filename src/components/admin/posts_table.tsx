@@ -23,6 +23,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Post, Category, Series, Tag } from "@prisma/client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type PostWithRelations = Post & {
   category: Category;
@@ -76,13 +87,34 @@ export function PostsTable() {
               Edit
             </Button>
           </Link>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => handleDelete(row.original.id)}
-          >
-            Delete
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger>
+              <Button variant="destructive" size="sm">
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  post:
+                  <br />
+                  <strong>&quot;{row.original.title}&quot;</strong>
+                  <br />
+                  This post has {row.original.views} views.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleDelete(row.original.id)}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       ),
     },
