@@ -43,5 +43,6 @@ export async function GET(
     prevPost,
     nextPost,
     totalPosts: post.series.posts.length,
+    posts: post.series.posts,
   });
 }
