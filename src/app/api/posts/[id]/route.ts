@@ -64,6 +64,21 @@ export async function DELETE(
 ) {
   try {
     const id = parseInt(params.id);
+
+    // TODO: should I remove all relations before deleting the selected post
+    await prisma.post.update({
+      where: { id },
+      data: {
+        tags: {
+          set: [],
+        },
+        series: {
+          disconnect: true,
+        },
+      },
+    });
+
+    // then we can delete the post
     await prisma.post.delete({
       where: { id },
     });
