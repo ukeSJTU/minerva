@@ -6,9 +6,9 @@ export default function PostLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div>
+    <div className="flex flex-col items-center">
       <DynamicIsland />
-      <div>{children}</div>
+      <div className="pt-[40px]">{children}</div>
     </div>
   );
 }
