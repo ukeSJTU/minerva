@@ -97,6 +97,7 @@ export function DynamicIsland() {
               stroke="currentColor"
               strokeWidth="3"
             />
+            {/* TODO: a bug: when user passes 50%, the number changes but the circle stucks at half way */}
             <path
               className="text-green-500"
               d="M18 2.0845
