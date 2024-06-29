@@ -9,7 +9,11 @@ export async function GET(
     const id = parseInt(params.id);
     const post = await prisma.post.findUnique({
       where: { id },
-      include: { category: true },
+      include: {
+        category: true,
+        series: true,
+        tags: true,
+      },
     });
 
     if (!post) {
@@ -30,15 +34,42 @@ export async function PUT(
   try {
     const id = parseInt(params.id);
     const json = await request.json();
+    const { tags, ...postData } = json;
 
     const updatedPost = await prisma.post.update({
       where: { id },
-      data: json,
+      data: {
+        ...postData,
+        tags: {
+          set: tags.map((tagId: number) => ({ id: tagId })),
+        },
+      },
+      include: {
+        category: true,
+        series: true,
+        tags: true,
+      },
     });
 
     return NextResponse.json(updatedPost);
   } catch (error) {
     console.error("Request error", error);
     return NextResponse.json({ error: "Error updating post" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const id = parseInt(params.id);
+    await prisma.post.delete({
+      where: { id },
+    });
+    return NextResponse.json({ message: "Post deleted successfully" });
+  } catch (error) {
+    console.error("Request error", error);
+    return NextResponse.json({ error: "Error deleting post" }, { status: 500 });
   }
 }

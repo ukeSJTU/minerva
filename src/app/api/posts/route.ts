@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { Post } from "@prisma/client";
 
 export async function GET() {
   try {
     const posts = await prisma.post.findMany({
-      include: { category: true },
+      include: {
+        category: true,
+        series: true,
+        tags: true,
+      },
     });
     return NextResponse.json(posts);
   } catch (error) {
@@ -19,9 +24,20 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const json = await request.json();
+    const { tags, ...postData } = json;
 
     const post = await prisma.post.create({
-      data: json,
+      data: {
+        ...postData,
+        tags: {
+          connect: tags.map((tagId: number) => ({ id: tagId })),
+        },
+      },
+      include: {
+        category: true,
+        series: true,
+        tags: true,
+      },
     });
 
     return NextResponse.json(post);
