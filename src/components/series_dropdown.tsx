@@ -26,28 +26,41 @@ export function SeriesDropdown({
   seriesTitle,
 }: SeriesDropdownProps) {
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
+      {/* setting the modal to false explicitly is to enable scrolling when dropdown-menu is shown */}
       <DropdownMenuTrigger asChild>
+        {/* The shadow of the button when user hovering it doesn't match the outer div of dynamic island */}
         <Button variant="ghost" size="icon">
           <List className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64">
-        <div className="px-2 py-1.5 text-sm font-semibold">{seriesTitle}</div>
-        <div className="h-px bg-gray-200 my-1" />
-        {posts.map((post) => (
-          <DropdownMenuItem key={post.id} asChild>
-            <Link
-              href={`/posts/${post.id}`}
-              className={`flex items-center px-2 py-2 text-sm ${
-                post.id === currentPostId ? "bg-gray-100 font-semibold" : ""
-              }`}
-            >
-              <span className="w-6 text-center mr-2">{post.orderInSeries}</span>
-              <span className="flex-grow truncate">{post.title}</span>
-            </Link>
-          </DropdownMenuItem>
-        ))}
+      <DropdownMenuContent className="">
+        <div className="grid grid-cols-2">
+          {posts.map((post) => (
+            <DropdownMenuItem key={post.id} asChild>
+              <Link
+                href={`/posts/${post.id}`}
+                className="flex items-start px-2 py-3 hover:bg-gray-50 transition-colors"
+              >
+                <div
+                  className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+                    post.id === currentPostId
+                      ? "bg-blue-300 text-blue-800"
+                      : "bg-blue-500 text-white"
+                  } transition-colors group-hover:bg-gray-400`}
+                >
+                  {post.orderInSeries}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-gray-500">
+                    Chapter {post.orderInSeries}
+                  </span>
+                  <span className="text-sm font-medium">{post.title}</span>
+                </div>
+              </Link>
+            </DropdownMenuItem>
+          ))}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
