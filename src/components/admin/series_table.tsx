@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   useReactTable,
   getCoreRowModel,
@@ -21,70 +22,114 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-// Define your data type based on the schema
-type Series = {
-  id: number;
-  title: string;
-  description: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-// Sample data (replace with actual data fetching)
-const data: Series[] = [
-  {
-    id: 1,
-    title: "First Series",
-    description: "Description 1",
-    createdAt: "2024-06-28",
-    updatedAt: "2024-06-28",
-  },
-  {
-    id: 2,
-    title: "Second Series",
-    description: null,
-    createdAt: "2024-06-29",
-    updatedAt: "2024-06-29",
-  },
-  // Add more sample data...
-];
-
-const columns: ColumnDef<Series>[] = [
-  {
-    accessorKey: "title",
-    header: "Title",
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => row.original.description || "N/A",
-  },
-  {
-    accessorKey: "createdAt",
-    header: "Created At",
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => (
-      <div>
-        <Button variant="outline" size="sm" className="mr-2">
-          Edit
-        </Button>
-        <Button variant="destructive" size="sm">
-          Delete
-        </Button>
-      </div>
-    ),
-  },
-];
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Series } from "@prisma/client";
 
 export function SeriesTable() {
+  const [series, setSeries] = useState<Series[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [filtering, setFiltering] = useState("");
 
+  useEffect(() => {
+    fetchSeries();
+  }, []);
+
+  const fetchSeries = async () => {
+    try {
+      const response = await fetch("/api/series");
+      if (!response.ok) throw new Error("Failed to fetch series");
+      const data: Series[] = await response.json();
+      setSeries(data);
+    } catch (error) {
+      console.error("Error fetching series:", error);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await fetch(`/api/series/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete series: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log(data.message);
+
+      setSeries(series.filter((s) => s.id !== id));
+    } catch (error) {
+      console.error("Error deleting series:", error);
+    }
+  };
+
+  const columns: ColumnDef<Series>[] = [
+    {
+      accessorKey: "title",
+      header: "Title",
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Created At",
+      cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <div>
+          <Link href={`/admin/series/edit/${row.original.id}`} passHref>
+            <Button variant="outline" size="sm" className="mr-2">
+              Edit
+            </Button>
+          </Link>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm">
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  series:
+                  <br />
+                  <strong>&quot;{row.original.title}&quot;</strong>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleDelete(row.original.id)}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      ),
+    },
+  ];
+
   const table = useReactTable({
-    data,
+    data: series,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -102,7 +147,9 @@ export function SeriesTable() {
     <div>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Series</h2>
-        <Button>Create New Series</Button>
+        <Link href="/admin/series/create" passHref>
+          <Button>Create New Series</Button>
+        </Link>
       </div>
       <Input
         placeholder="Filter series..."
