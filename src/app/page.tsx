@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { HomepageBanner } from "@/components/banner";
 import ProfileCard from "@/components/profile_card";
 import PostCard from "@/components/posts/card";
+import CategoriesCard from "@/components/categories_card";
 
 export default async function Home() {
   const posts = await prisma.post.findMany({
@@ -19,7 +20,7 @@ export default async function Home() {
         quote="A blog about web development and programming."
       />
       <div className="container flex flex-row mx-auto justify-around px-4 py-16 text-center">
-        <div className="w-1/3">
+        <div className="w-1/3 flex flex-col justify-start space-y-4">
           <ProfileCard
             avatarUrl="/images/avatar.jpg"
             name="uke"
@@ -28,6 +29,7 @@ export default async function Home() {
             followers={29}
             posts={30}
           />
+          <CategoriesCard />
         </div>
         <div className="w-2/3">
           <div className="flex flex-col space-y-6">
