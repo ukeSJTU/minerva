@@ -5,6 +5,7 @@
         "cfg",
         "db",
         "api",
-        "admin"
+        "admin",
+        "auth"
     ]
 }
