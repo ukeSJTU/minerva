@@ -1,9 +1,35 @@
 import { PrismaClient } from "@prisma/client";
+import { faker } from "@faker-js/faker";
 
 const prisma = new PrismaClient();
 
+function generateMarkdownContent(): string {
+  const paragraphs = faker.number.int({ min: 3, max: 5 });
+  let content = "";
+
+  for (let i = 0; i < paragraphs; i++) {
+    content += `## ${faker.lorem.sentence()}\n\n`;
+    content += faker.lorem.paragraphs(2) + "\n\n";
+
+    if (faker.datatype.boolean()) {
+      content +=
+        "```" +
+        faker.helpers.arrayElement(["javascript", "python", "swift"]) +
+        "\n";
+      content += faker.lorem.lines(3) + "\n";
+      content += "```\n\n";
+    }
+
+    if (faker.datatype.boolean()) {
+      content += "> " + faker.lorem.sentence() + "\n\n";
+    }
+  }
+
+  return content;
+}
+
 async function main() {
-  // Create categories
+  // Create categories (unchanged)
   const techCategory = await prisma.category.upsert({
     where: { name: "Technology" },
     update: {},
@@ -16,84 +42,137 @@ async function main() {
     create: { name: "Game Development", slug: "game-development" },
   });
 
-  // Create series
-  const swiftSeries = await prisma.series.create({
-    data: {
+  // Create or update series
+  const swiftSeries = await prisma.series.upsert({
+    where: { slug: "learn-swift" },
+    update: {},
+    create: {
       title: "A Practical Way to Learn Swift",
       description: "Step-by-step guide to mastering Swift programming",
       slug: "learn-swift",
     },
   });
 
-  const pygameSeries = await prisma.series.create({
-    data: {
+  const pygameSeries = await prisma.series.upsert({
+    where: { slug: "pygame-snake" },
+    update: {},
+    create: {
       title: "Design a Snake Game with Pygame",
       description: "Learn game development by creating a classic Snake game",
       slug: "pygame-snake",
     },
   });
 
+  // Create dummy users
+  const users = await Promise.all(
+    Array.from({ length: 5 }).map(() =>
+      prisma.user.create({
+        data: {
+          name: faker.person.fullName(),
+          email: faker.internet.email(),
+          image: faker.image.avatar(),
+        },
+      })
+    )
+  );
+
   // Create posts for Swift series
   for (let i = 1; i <= 10; i++) {
-    await prisma.post.create({
-      data: {
+    const post = await prisma.post.upsert({
+      where: { slug: `swift-tutorial-${i}` },
+      update: {
         title: `Swift Tutorial ${i}: ${getSwiftTopicForIndex(i)}`,
-        content: `
-# Swift Tutorial ${i}: ${getSwiftTopicForIndex(i)}
-
-This is the content for Swift tutorial ${i}. Below is a code example:
-
-\`\`\`swift
-// This is a Swift code example
-let message = "Hello, Swift!"
-print(message)
-\`\`\`
-
-> "Learning Swift can be fun and rewarding!" - Swift Community
-
-And some additional information about the topic...
-        `,
+        content: generateMarkdownContent(),
         published: true,
         category: { connect: { id: techCategory.id } },
         series: { connect: { id: swiftSeries.id } },
         orderInSeries: i,
         slug: `swift-tutorial-${i}`,
+        views: faker.number.int({ min: 100, max: 10000 }),
+        likes: faker.number.int({ min: 10, max: 1000 }),
+      },
+      create: {
+        title: `Swift Tutorial ${i}: ${getSwiftTopicForIndex(i)}`,
+        content: generateMarkdownContent(),
+        published: true,
+        category: { connect: { id: techCategory.id } },
+        series: { connect: { id: swiftSeries.id } },
+        orderInSeries: i,
+        slug: `swift-tutorial-${i}`,
+        views: faker.number.int({ min: 100, max: 10000 }),
+        likes: faker.number.int({ min: 10, max: 1000 }),
       },
     });
+
+    // Create comments for each post
+    await createCommentsForPost(post.id, users);
   }
 
   // Create posts for Pygame series
   for (let i = 1; i <= 7; i++) {
-    await prisma.post.create({
-      data: {
+    const post = await prisma.post.upsert({
+      where: { slug: `pygame-tutorial-${i}` },
+      update: {
         title: `Pygame Tutorial ${i}: ${getPygameTopicForIndex(i)}`,
-        content: `
-# Pygame Tutorial ${i}: ${getPygameTopicForIndex(i)}
-
-This is the content for Pygame tutorial ${i}. Below is a code example:
-
-\`\`\`python
-# This is a Pygame code example
-import pygame
-pygame.init()
-screen = pygame.display.set_mode((800, 600))
-pygame.display.set_caption("Snake Game")
-\`\`\`
-
-> "Creating games with Pygame is a great way to learn programming!" - Pygame Community
-
-And some additional information about the topic...
-        `,
+        content: generateMarkdownContent(),
         published: true,
         category: { connect: { id: gameCategory.id } },
         series: { connect: { id: pygameSeries.id } },
         orderInSeries: i,
         slug: `pygame-tutorial-${i}`,
+        views: faker.number.int({ min: 100, max: 10000 }),
+        likes: faker.number.int({ min: 10, max: 1000 }),
+      },
+      create: {
+        title: `Pygame Tutorial ${i}: ${getPygameTopicForIndex(i)}`,
+        content: generateMarkdownContent(),
+        published: true,
+        category: { connect: { id: gameCategory.id } },
+        series: { connect: { id: pygameSeries.id } },
+        orderInSeries: i,
+        slug: `pygame-tutorial-${i}`,
+        views: faker.number.int({ min: 100, max: 10000 }),
+        likes: faker.number.int({ min: 10, max: 1000 }),
       },
     });
+
+    // Create comments for each post
+    await createCommentsForPost(post.id, users);
   }
 
   console.log("Seed data created");
+}
+
+async function createCommentsForPost(postId: number, users: any[]) {
+  const commentCount = faker.number.int({ min: 3, max: 10 });
+
+  for (let i = 0; i < commentCount; i++) {
+    const comment = await prisma.comment.create({
+      data: {
+        content: faker.lorem.paragraph(),
+        postId,
+        authorId: users[faker.number.int({ min: 0, max: users.length - 1 })].id,
+        likes: faker.number.int({ min: 0, max: 100 }),
+        dislikes: faker.number.int({ min: 0, max: 50 }),
+      },
+    });
+
+    // Add nested comments (replies)
+    const replyCount = faker.number.int({ min: 0, max: 3 });
+    for (let j = 0; j < replyCount; j++) {
+      await prisma.comment.create({
+        data: {
+          content: faker.lorem.sentence(),
+          postId,
+          authorId:
+            users[faker.number.int({ min: 0, max: users.length - 1 })].id,
+          parentId: comment.id,
+          likes: faker.number.int({ min: 0, max: 50 }),
+          dislikes: faker.number.int({ min: 0, max: 25 }),
+        },
+      });
+    }
+  }
 }
 
 function getSwiftTopicForIndex(index: number): string {
