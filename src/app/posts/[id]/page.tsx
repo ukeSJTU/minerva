@@ -3,6 +3,7 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import { components } from "@/components/markdown";
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import { CommentSection } from "@/components/comment_section";
 
 interface PostPageProps {
   params: { id: string };
@@ -25,6 +26,7 @@ export default async function PostPage({ params }: PostPageProps) {
       <div className="prose prose-lg">
         <MDXRemote source={post.content} components={components} />
       </div>
+      <CommentSection postId={parseInt(id)} />
     </div>
   );
 }
