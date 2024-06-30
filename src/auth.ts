@@ -12,13 +12,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    async jwt({ token, user, account }) {
+      // console.log("JWT Callback - Token:", token);
+      // console.log("JWT Callback - User:", user);
+      // console.log("JWT Callback - Account:", account);
+
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token, user }) {
+      // console.log("Session Callback - Session:", session);
+      // console.log("Session Callback - Token:", token);
+      // console.log("Session Callback - User:", user);
+
+      if (session?.user) {
+        session.user.id = token.id as string;
+      }
+      return session;
+    },
+
+    // session: ({ session, user }) => ({
+    //   ...session,
+    //   user: {
+    //     ...session.user,
+    //     id: user.id,
+    //   },
+    // }),
   },
   pages: {
     signIn: "/auth/signin",
