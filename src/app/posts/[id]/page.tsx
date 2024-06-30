@@ -4,6 +4,7 @@ import { components } from "@/components/markdown";
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { CommentSection } from "@/components/comment_section";
+import MDXContent from "@/components/mdx_content";
 
 interface PostPageProps {
   params: { id: string };
@@ -24,7 +25,8 @@ export default async function PostPage({ params }: PostPageProps) {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
       <div className="prose prose-lg">
-        <MDXRemote source={post.content} components={components} />
+        <MDXContent source={post.content} />
+        {/* <MDXRemote source={post.content} components={components} /> */}
       </div>
       <CommentSection postId={parseInt(id)} />
     </div>
