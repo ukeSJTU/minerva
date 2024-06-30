@@ -2,14 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
-
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
+import { useSession, signIn, signOut } from "next-auth/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 const navItems: { title: string; href: string }[] = [
   { title: "Home", href: "/" },
@@ -19,23 +14,43 @@ const navItems: { title: string; href: string }[] = [
 ];
 
 export function Navbar() {
+  const { data: session, status } = useSession();
+
   return (
-    <div className="fixed top-0 left-0 right-0 bg-background z-50 shadow-sm h-[70px]">
-      <div className="container mx-auto flex justify-between items-center py-4">
-        <NavigationMenu>
-          <NavigationMenuList>
-            {navItems.map((item) => (
-              <NavigationMenuItem key={item.title}>
-                <Link href={item.href} legacyBehavior passHref>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    {item.title}
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-            ))}
-          </NavigationMenuList>
-        </NavigationMenu>
+    <nav className="bg-transparent text-black p-4">
+      <div className="container mx-auto flex justify-between items-center">
+        <ul className="flex space-x-4">
+          {navItems.map((item) => (
+            <li key={item.title}>
+              <Link href={item.href} className="hover:underline">
+                {item.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className="flex items-center space-x-4">
+          {status === "authenticated" ? (
+            <>
+              <Avatar>
+                <AvatarImage
+                  src={session.user?.image || undefined}
+                  alt={session.user?.name || "User"}
+                />
+                <AvatarFallback>
+                  {session.user?.name?.[0] || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <Button variant="outline" onClick={() => signOut()}>
+                Logout
+              </Button>
+            </>
+          ) : (
+            <Button variant="outline" onClick={() => signIn()}>
+              Login
+            </Button>
+          )}
+        </div>
       </div>
-    </div>
+    </nav>
   );
 }
