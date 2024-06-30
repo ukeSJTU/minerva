@@ -2,29 +2,35 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { Comment, User } from "@prisma/client";
 import { AvatarFallback, AvatarImage, Avatar } from "./ui/avatar";
 
-type CommentCardProps = Comment & {
-  onReply: (parentId: string, content: string) => void;
-  onEdit: (id: string, content: string) => void;
-  onDelete: (id: string) => void;
-  onLike: (id: string) => void;
-  onDislike: (id: string) => void;
-} & { author: User; replies: CommentCardProps[] };
+interface CommentCardProps {
+  id: string;
+  content: string;
+  createdAt: string;
+  author: {
+    name: string | null;
+    image: string | null;
+    id: string;
+  };
+  likes: number;
+  dislikes: number;
+  _count: { replies: number };
+  onReply: (parentId: string, content: string) => Promise<void>;
+  onEdit: (id: string, content: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+  onLike: (id: string) => Promise<void>;
+  onDislike: (id: string) => Promise<void>;
+}
 
 export function CommentCard({
   id,
   content,
   createdAt,
-  updatedAt,
-  postId,
-  authorId,
-  parentId,
+  author,
   likes,
   dislikes,
-  author,
-  replies,
+  _count,
   onReply,
   onEdit,
   onDelete,
@@ -36,6 +42,8 @@ export function CommentCard({
   const [editedContent, setEditedContent] = useState(content);
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState("");
+  const [showReplies, setShowReplies] = useState(false);
+  const [replies, setReplies] = useState<CommentCardProps[]>([]);
 
   const handleEdit = () => {
     onEdit(id, editedContent);
@@ -46,6 +54,23 @@ export function CommentCard({
     onReply(id, replyContent);
     setIsReplying(false);
     setReplyContent("");
+  };
+
+  const fetchReplies = async () => {
+    const res = await fetch(`/api/comments?parentId=${id}`);
+    if (res.ok) {
+      const data = await res.json();
+      setReplies(data.comments);
+    } else {
+      console.error("Failed to fetch replies:", await res.text());
+    }
+  };
+
+  const toggleReplies = () => {
+    if (!showReplies && _count.replies > 0) {
+      fetchReplies();
+    }
+    setShowReplies(!showReplies);
   };
 
   return (
@@ -143,21 +168,25 @@ export function CommentCard({
           </button>
         </div>
       )}
-      {replies && replies.length > 0 && (
-        <div className="ml-8 mt-4">
-          {replies.map((reply: CommentCardProps) => (
-            <CommentCard
-              key={reply.id}
-              {...reply}
-              onReply={onReply}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onLike={onLike}
-              onDislike={onDislike}
-            />
-          ))}
-        </div>
+      {_count.replies > 0 && (
+        <button onClick={toggleReplies} className="text-blue-500 mt-2">
+          {showReplies ? "Hide" : "Show"} {_count.replies} repl
+          {_count.replies === 1 ? "y" : "ies"}
+        </button>
       )}
+
+      {showReplies &&
+        replies.map((reply) => (
+          <CommentCard
+            key={reply.id}
+            {...reply}
+            onReply={onReply}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onLike={onLike}
+            onDislike={onDislike}
+          />
+        ))}
     </div>
   );
 }

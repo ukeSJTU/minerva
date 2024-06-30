@@ -3,35 +3,61 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { CommentCard } from "@/components/comment";
+import InfiniteScroll from "react-infinite-scroll-component";
 import { Comment, User } from "@prisma/client";
 
-type CommentCardProps = Comment & {
-  onReply: (parentId: string, content: string) => void;
-  onEdit: (id: string, content: string) => void;
-  onDelete: (id: string) => void;
-  onLike: (id: string) => void;
-  onDislike: (id: string) => void;
-} & { author: User; replies: CommentCardProps[] };
+interface CommentData {
+  id: string;
+  content: string;
+  createdAt: string;
+  author: {
+    name: string | null;
+    image: string | null;
+    id: string;
+  };
+  likes: number;
+  dislikes: number;
+  _count: { replies: number };
+}
 
 export function CommentSection({ postId }: { postId: number }) {
-  const [comments, setComments] = useState<CommentCardProps[]>([]);
+  const [comments, setComments] = useState<CommentData[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [cursor, setCursor] = useState<string | null>(null);
   const [newComment, setNewComment] = useState("");
   const { data: session } = useSession();
 
-  const fetchComments = useCallback(async () => {
-    console.log("Start to fetch comments data.");
-    const res = await fetch(`/api/comments?postId=${postId}`);
+  const loadMoreComments = useCallback(() => {
+    setCursor((prevCursor) => prevCursor || ""); // This will trigger the useEffect
+  }, []);
 
-    if (res.ok) {
-      const data = await res.json();
-      console.log(data);
-      setComments(data);
-    }
-  }, [postId]);
+  const refreshComments = useCallback(() => {
+    setComments([]);
+    setCursor(null);
+    setHasMore(true);
+  }, []);
 
   useEffect(() => {
-    fetchComments();
-  }, [fetchComments]);
+    const fetchComments = async () => {
+      const res = await fetch(
+        `/api/comments?postId=${postId}${cursor ? `&cursor=${cursor}` : ""}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setComments((prev) => [...prev, ...data.comments]);
+        if (data.nextCursor) {
+          setCursor(data.nextCursor);
+        } else {
+          setHasMore(false);
+        }
+        console.log(data.nextCursor);
+      }
+    };
+
+    if (cursor === null) {
+      fetchComments();
+    }
+  }, [postId, cursor]);
 
   const handleSubmitComment = async () => {
     if (!newComment.trim()) return;
@@ -44,7 +70,8 @@ export function CommentSection({ postId }: { postId: number }) {
 
     if (res.ok) {
       setNewComment("");
-      fetchComments();
+      // Refresh comments after posting
+      refreshComments();
     }
   };
 
@@ -56,7 +83,8 @@ export function CommentSection({ postId }: { postId: number }) {
     });
 
     if (res.ok) {
-      fetchComments();
+      // Refresh comments after replying
+      refreshComments();
     }
   };
 
@@ -68,7 +96,7 @@ export function CommentSection({ postId }: { postId: number }) {
     });
 
     if (res.ok) {
-      fetchComments();
+      refreshComments();
     }
   };
 
@@ -76,7 +104,7 @@ export function CommentSection({ postId }: { postId: number }) {
     const res = await fetch(`/api/comments?id=${id}`, { method: "DELETE" });
 
     if (res.ok) {
-      fetchComments();
+      refreshComments();
     }
   };
 
@@ -109,17 +137,29 @@ export function CommentSection({ postId }: { postId: number }) {
       ) : (
         <p>Please sign in to comment.</p>
       )}
-      {comments.map((comment) => (
-        <CommentCard
-          key={comment.id}
-          {...comment}
-          onReply={handleReply}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onLike={handleLike}
-          onDislike={handleDislike}
-        />
-      ))}
+      <InfiniteScroll
+        dataLength={comments.length}
+        next={loadMoreComments}
+        hasMore={hasMore}
+        loader={<h4>Loading...</h4>}
+        endMessage={
+          <p style={{ textAlign: "center" }}>
+            <b>You&apos;ve seen all comments!</b>
+          </p>
+        }
+      >
+        {comments.map((comment) => (
+          <CommentCard
+            key={comment.id}
+            {...comment}
+            onReply={handleReply}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onLike={handleLike}
+            onDislike={handleDislike}
+          />
+        ))}
+      </InfiniteScroll>
     </div>
   );
 }
