@@ -5,25 +5,36 @@ import { auth } from "@/auth";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const postId = searchParams.get("postId");
+  const parentId = searchParams.get("parentId");
+  const cursor = searchParams.get("cursor");
+  const limit = parseInt(searchParams.get("limit") || "10");
 
-  if (!postId) {
-    return NextResponse.json({ error: "Post ID is required" }, { status: 400 });
+  if (!postId && !parentId) {
+    return NextResponse.json(
+      { error: "Post ID or Parent ID is required" },
+      { status: 400 }
+    );
   }
 
+  const whereClause = parentId
+    ? { parentId }
+    : { postId: parseInt(postId!), parentId: null };
+
   const comments = await prisma.comment.findMany({
-    where: { postId: parseInt(postId) },
+    where: whereClause,
     include: {
-      author: { select: { name: true, image: true } },
-      replies: {
-        include: {
-          author: { select: { name: true, image: true } },
-        },
-      },
+      author: { select: { name: true, image: true, id: true } },
+      _count: { select: { replies: true } },
     },
     orderBy: { createdAt: "desc" },
+    take: limit,
+    ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
   });
 
-  return NextResponse.json(comments);
+  const nextCursor =
+    comments.length === limit ? comments[comments.length - 1].id : null;
+
+  return NextResponse.json({ comments, nextCursor });
 }
 
 export async function POST(request: Request) {
