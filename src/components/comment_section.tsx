@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { CommentCard } from "@/components/comment";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { Comment, User } from "@prisma/client";
+import { MarkdownEditor } from "@/components/markdown_editor";
 
 interface CommentData {
   id: string;
@@ -121,18 +121,11 @@ export function CommentSection({ postId }: { postId: number }) {
       <h2 className="text-2xl font-bold mb-4">Comments</h2>
       {session ? (
         <div className="mb-4">
-          <textarea
+          <MarkdownEditor
             value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            className="w-full p-2 border rounded"
-            placeholder="Write a comment..."
+            onChange={setNewComment}
+            onSubmit={handleSubmitComment}
           />
-          <button
-            onClick={handleSubmitComment}
-            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
-          >
-            Post Comment
-          </button>
         </div>
       ) : (
         <p>Please sign in to comment.</p>
