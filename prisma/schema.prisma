@@ -42,6 +42,7 @@ model Post {
   likes         Int       @default(0)
   tags          Tag[]
   comments      Comment[]
+  bannerImgURL  String?
 }
 
 model Category {
