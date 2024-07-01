@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, ArrowUp } from "lucide-react";
 import { SeriesDropdown } from "@/components/series_dropdown";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import DualProgressCircle from "./dual_progress_circle";
 
 interface SeriesInfo {
   id: number;
@@ -21,6 +22,7 @@ interface SeriesInfo {
 
 export function DynamicIsland() {
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null);
+  const [postProgress, setPostProgress] = useState(0);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -40,6 +42,17 @@ export function DynamicIsland() {
     };
 
     fetchSeriesInfo();
+
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = scrollTop / docHeight;
+      setPostProgress(Math.round(scrollPercent * 100));
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [pathname]);
 
   const handleBackToTop = () => {
@@ -56,7 +69,7 @@ export function DynamicIsland() {
     return 0;
   };
 
-  const progress = getSeriesProgress();
+  const seriesProgress = getSeriesProgress();
 
   if (!seriesInfo) {
     return null;
@@ -89,19 +102,11 @@ export function DynamicIsland() {
             <ChevronLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <div className="relative w-6 h-6">
-          <CircularProgressbar
-            value={progress}
-            text={`${progress}%`}
-            styles={buildStyles({
-              textSize: "32px",
-              pathColor: "#2563EB",
-              textColor: "#000",
-              trailColor: "#BFDBFE",
-              strokeLinecap: "round",
-            })}
-          />
-        </div>
+        <DualProgressCircle
+          seriesProgress={seriesProgress}
+          postProgress={postProgress}
+          size={32}
+        />
         <Button
           variant="ghost"
           size="sm"
