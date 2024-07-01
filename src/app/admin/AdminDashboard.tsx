@@ -16,7 +16,7 @@ export default function AdminDashboard() {
         activeSession={activeSection}
         setActiveSection={setActiveSection}
       />
-      <main className="flex-1 p-6 overflow-auto">
+      <main className="flex-1 p-6 ">
         {activeSection === "posts" && <PostsTable />}
         {activeSection === "series" && <SeriesTable />}
         {/* Add more sections as needed */}
