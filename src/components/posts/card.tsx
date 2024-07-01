@@ -5,6 +5,7 @@ import { CalendarIcon, EyeIcon, HeartIcon, ArrowRightIcon } from "lucide-react";
 import CategoryBadge from "../badges/category";
 import { Post, Category } from "@prisma/client";
 import { Separator } from "../ui/separator";
+import PostStats from "./stats";
 
 type Props = {
   post: Post & { category?: Category };
@@ -42,26 +43,7 @@ const PostCard: React.FC<Props> = ({ post, imagePosition = "left" }) => {
               {post.title}
             </Link>
           </h3>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground my-2">
-            <span className="flex items-center gap-1 ">
-              <CalendarIcon className="w-4 h-4" />
-              {new Date(post.createdAt).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })}
-            </span>
-            <Separator orientation="vertical" className="mx-2 h-4" />
-            <span className="flex items-center gap-1">
-              <EyeIcon className="w-4 h-4" />
-              {post.views || 0} views
-            </span>
-            <Separator orientation="vertical" className="mx-2 h-4" />
-            <span className="flex items-center gap-1">
-              <HeartIcon className="w-4 h-4" />
-              {post.likes || 0} likes
-            </span>
-          </div>
+          <PostStats post={post} showStats={["createdAt", "views", "likes"]} />
           <p className="text-muted-foreground text-sm line-clamp-2 mb-4">
             {post.content}
           </p>
