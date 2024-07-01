@@ -120,3 +120,50 @@ export async function DELETE(request: Request) {
 
   return NextResponse.json({ message: "Comment deleted successfully" });
 }
+
+export async function PATCH(request: Request) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  const action = searchParams.get("action");
+
+  if (!id || !action) {
+    return NextResponse.json(
+      { error: "Comment ID and action are required" },
+      { status: 400 }
+    );
+  }
+
+  if (action !== "like" && action !== "dislike") {
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  }
+
+  try {
+    const comment = await prisma.comment.findUnique({ where: { id } });
+
+    if (!comment) {
+      return NextResponse.json({ error: "Comment not found" }, { status: 404 });
+    }
+
+    const updatedComment = await prisma.comment.update({
+      where: { id },
+      data: {
+        [action === "like" ? "likes" : "dislikes"]: {
+          increment: 1,
+        },
+      },
+    });
+
+    return NextResponse.json(updatedComment);
+  } catch (error) {
+    console.error(`Error ${action}ing comment:`, error);
+    return NextResponse.json(
+      { error: `Error ${action}ing comment` },
+      { status: 500 }
+    );
+  }
+}
