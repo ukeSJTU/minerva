@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ArrowUp } from "lucide-react";
 import { SeriesDropdown } from "@/components/series_dropdown";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
 interface SeriesInfo {
   id: number;
@@ -54,6 +56,8 @@ export function DynamicIsland() {
     return 0;
   };
 
+  const progress = getSeriesProgress();
+
   if (!seriesInfo) {
     return null;
   }
@@ -86,30 +90,17 @@ export function DynamicIsland() {
           </Link>
         </Button>
         <div className="relative w-6 h-6">
-          <svg className="w-6 h-6" viewBox="0 0 36 36">
-            <path
-              className="text-blue-200"
-              d="M18 2.0845
-                a 15.9155 15.9155 0 0 1 0 31.831
-                a 15.9155 15.9155 0 0 1 0 -31.831"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-            />
-            {/* TODO: a bug: when user passes 50%, the number changes but the circle stucks at half way */}
-            <path
-              className="text-blue-600"
-              d="M18 2.0845
-                a 15.9155 15.9155 0 0 1 0 31.831"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeDasharray={`${getSeriesProgress()}, 100`}
-            />
-          </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-[10px]">
-            {getSeriesProgress()}%
-          </span>
+          <CircularProgressbar
+            value={progress}
+            text={`${progress}%`}
+            styles={buildStyles({
+              textSize: "32px",
+              pathColor: "#2563EB",
+              textColor: "#000",
+              trailColor: "#BFDBFE",
+              strokeLinecap: "round",
+            })}
+          />
         </div>
         <Button
           variant="ghost"
