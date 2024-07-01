@@ -5,6 +5,8 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import PostStats from "@/components/posts/stats";
+import { Post } from "@prisma/client";
 
 interface BannerProps {
   imageUrl: string;
@@ -83,37 +85,36 @@ const HomepageBanner: React.FC<HomepageBannerProps> = ({
 };
 
 interface PostBannerProps {
-  imageUrl: string;
-  title: string;
-  views: number;
+  post: Post;
   onCommentClick: () => void;
   children?: ReactNode;
 }
 
 const PostBanner: React.FC<PostBannerProps> = ({
-  imageUrl,
-  title,
-  views,
+  post,
   onCommentClick,
   children,
 }) => {
+  const imageUrl = post.bannerImgURL || "/images/banner_2.jpg";
+
   return (
     <Banner imageUrl={imageUrl} className="h-[50vh]">
       <div className="absolute inset-0 z-20">
         {children}
         <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 text-white">
-            {title}
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 text-white text-center px-4">
+            {post.title}
           </h1>
-          <div className="flex items-center text-white mb-4">
-            <Eye size={20} className="mr-2" />
-            <span>{views} views</span>
-          </div>
+          <PostStats
+            post={post}
+            showStats={["createdAt", "views", "likes", "comments"]}
+          />
           <Button
             onClick={onCommentClick}
             variant="outline"
             className="mt-4 bg-white text-black px-6 py-2 rounded-full hover:bg-opacity-80 transition-colors"
           >
+            <ChevronDown size={20} className="mr-2" />
             Jump to Comments
           </Button>
         </div>
