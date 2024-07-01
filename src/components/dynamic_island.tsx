@@ -59,37 +59,36 @@ export function DynamicIsland() {
   }
 
   return (
-    <div className="fixed pt-[60px] mx-auto w-max top-4 bg-background/80 backdrop-blur-md shadow-md rounded-full px-4 py-2 flex items-center space-x-4 z-50">
-      <SeriesDropdown
-        posts={seriesInfo.posts}
-        currentPostId={seriesInfo.currentPost.id}
-        seriesTitle={seriesInfo.title}
-      />
-      <Link href={`/series/${seriesInfo.id}`}>
-        <span className="text-sm font-bold">{seriesInfo.title}</span>
-      </Link>
-      <span className="text-sm">
-        {seriesInfo.currentPost.orderInSeries} of {seriesInfo.totalPosts}
-      </span>
-      <div className="flex items-center space-x-2">
-        {seriesInfo.prevPost ? (
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={`/posts/${seriesInfo.prevPost.id}`}>
-              <ChevronLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-        ) : (
-          <Button variant="ghost" size="icon" disabled>
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-background/80 text-black rounded-full px-3 py-2 flex items-center space-x-2 z-50 shadow-lg transition-all duration-300 ease-in-out hover:w-auto hover:max-w-md">
+      <div className="flex items-center space-x-2 overflow-hidden">
+        <SeriesDropdown
+          posts={seriesInfo.posts}
+          currentPostId={seriesInfo.currentPost.id}
+          seriesTitle={seriesInfo.title}
+        />
+        <Link href={`/series/${seriesInfo.id}`} className="truncate">
+          <span className="text-xs font-semibold">{seriesInfo.title}</span>
+        </Link>
+      </div>
+      <div className="flex items-center space-x-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="p-1 hover:bg-white/10 rounded-full"
+          asChild
+        >
+          <Link
+            href={
+              seriesInfo.prevPost ? `/posts/${seriesInfo.prevPost.id}` : "#"
+            }
+          >
             <ChevronLeft className="h-4 w-4" />
-          </Button>
-        )}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xs">{getSeriesProgress()}%</span>
-          </div>
-          <svg className="w-8 h-8 text-gray-300" viewBox="0 0 36 36">
+          </Link>
+        </Button>
+        <div className="relative w-6 h-6">
+          <svg className="w-6 h-6" viewBox="0 0 36 36">
             <path
-              className="text-gray-200"
+              className="text-blue-200"
               d="M18 2.0845
                 a 15.9155 15.9155 0 0 1 0 31.831
                 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -99,7 +98,7 @@ export function DynamicIsland() {
             />
             {/* TODO: a bug: when user passes 50%, the number changes but the circle stucks at half way */}
             <path
-              className="text-green-500"
+              className="text-blue-600"
               d="M18 2.0845
                 a 15.9155 15.9155 0 0 1 0 31.831"
               fill="none"
@@ -108,20 +107,31 @@ export function DynamicIsland() {
               strokeDasharray={`${getSeriesProgress()}, 100`}
             />
           </svg>
+          <span className="absolute inset-0 flex items-center justify-center text-[10px]">
+            {getSeriesProgress()}%
+          </span>
         </div>
-        {seriesInfo.nextPost ? (
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={`/posts/${seriesInfo.nextPost.id}`}>
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        ) : (
-          <Button variant="ghost" size="icon" disabled>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="p-1 hover:bg-white/10 rounded-full"
+          asChild
+        >
+          <Link
+            href={
+              seriesInfo.nextPost ? `/posts/${seriesInfo.nextPost.id}` : "#"
+            }
+          >
             <ChevronRight className="h-4 w-4" />
-          </Button>
-        )}
+          </Link>
+        </Button>
       </div>
-      <Button variant="ghost" size="icon" onClick={handleBackToTop}>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleBackToTop}
+        className="p-1 hover:bg-white/10 rounded-full"
+      >
         <ArrowUp className="h-4 w-4" />
       </Button>
     </div>
