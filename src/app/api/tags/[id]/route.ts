@@ -71,19 +71,29 @@ export async function DELETE(
   try {
     const id = parseInt(params.id);
 
-    // First, remove the tag from all posts
-    await prisma.post.update({
+    // First, find all posts with this tag
+    const postsWithTag = await prisma.post.findMany({
       where: {
         tags: {
           some: { id },
         },
       },
-      data: {
-        tags: {
-          disconnect: { id },
-        },
-      },
+      select: { id: true },
     });
+
+    // Remove the tag from all these posts
+    await Promise.all(
+      postsWithTag.map((post) =>
+        prisma.post.update({
+          where: { id: post.id },
+          data: {
+            tags: {
+              disconnect: { id },
+            },
+          },
+        })
+      )
+    );
 
     // Then delete the tag
     await prisma.tag.delete({
