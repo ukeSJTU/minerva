@@ -17,7 +17,7 @@ export function Navbar() {
   const { data: session, status } = useSession();
 
   return (
-    <nav className="bg-transparent text-black p-4">
+    <nav className="bg-transparent text-white p-4 z-10 relative">
       <div className="container mx-auto flex justify-between items-center">
         <ul className="flex space-x-4">
           {navItems.map((item) => (
@@ -40,12 +40,12 @@ export function Navbar() {
                   {session.user?.name?.[0] || "U"}
                 </AvatarFallback>
               </Avatar>
-              <Button variant="outline" onClick={() => signOut()}>
+              <Button variant="ghost" onClick={() => signOut()}>
                 Logout
               </Button>
             </>
           ) : (
-            <Button variant="outline" onClick={() => signIn()}>
+            <Button variant="ghost" onClick={() => signIn()}>
               Login
             </Button>
           )}
