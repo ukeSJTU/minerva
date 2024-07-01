@@ -22,8 +22,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <SessionProvider>
           <NextTopLoader />
-          <Navbar />
-          <div className="pt-[70px]">{children}</div>
+          <div>{children}</div>
         </SessionProvider>
       </body>
     </html>
