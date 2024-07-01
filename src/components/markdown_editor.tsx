@@ -33,7 +33,7 @@ import {
 
 interface MarkdownEditorProps {
   value: string;
-  initialMode: "plain" | "preview" | "hybrid";
+  initialMode?: "plain" | "preview" | "hybrid";
   onChange: (value: string) => void;
   onSubmit: () => void;
 }
