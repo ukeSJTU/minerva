@@ -2,8 +2,10 @@ import { Button } from "@/components/ui/button";
 import { FileText, Layers } from "lucide-react";
 
 export function Sidebar({
+  activeSession,
   setActiveSection,
 }: {
+  activeSession: "posts" | "series";
   setActiveSection: (section: "posts" | "series") => void;
 }) {
   return (
@@ -12,7 +14,7 @@ export function Sidebar({
       <nav className="space-y-2">
         <Button
           variant="ghost"
-          className="w-full justify-start"
+          className={`w-full justify-start ${activeSession === "posts" ? "bg-gray-200" : ""}`}
           onClick={() => setActiveSection("posts")}
         >
           <FileText className="mr-2 h-4 w-4" />
@@ -20,7 +22,7 @@ export function Sidebar({
         </Button>
         <Button
           variant="ghost"
-          className="w-full justify-start"
+          className={`w-full justify-start ${activeSession === "series" ? "bg-gray-200" : ""}`}
           onClick={() => setActiveSection("series")}
         >
           <Layers className="mr-2 h-4 w-4" />
