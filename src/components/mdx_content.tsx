@@ -1,6 +1,12 @@
-import { MDXRemote } from "next-mdx-remote/rsc";
+"use client";
+
+import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
 import { components } from "@/components/markdown";
 
-export default function MDXContent({ source }: { source: string }) {
-  return <MDXRemote source={source} components={components} />;
+interface MDXContentProps {
+  source: MDXRemoteSerializeResult;
+}
+
+export default function MDXContent({ source }: MDXContentProps) {
+  return <MDXRemote {...source} components={components} />;
 }
