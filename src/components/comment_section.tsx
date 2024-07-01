@@ -18,6 +18,7 @@ interface CommentData {
   likes: number;
   dislikes: number;
   _count: { replies: number };
+  replies?: CommentData[];
 }
 
 export function CommentSection({ postId }: { postId: number }) {
@@ -109,11 +110,58 @@ export function CommentSection({ postId }: { postId: number }) {
   };
 
   const handleLike = async (id: string) => {
-    // Implement like functionality
+    const res = await fetch(`/api/comments?id=${id}&action=like`, {
+      method: "PATCH",
+    });
+
+    if (res.ok) {
+      const updatedComment = await res.json();
+      setComments((prevComments) =>
+        updateCommentRecursively(prevComments, id, (comment) => ({
+          ...comment,
+          likes: updatedComment.likes,
+        }))
+      );
+    } else {
+      console.error("Failed to like comment");
+    }
   };
 
   const handleDislike = async (id: string) => {
-    // Implement dislike functionality
+    const res = await fetch(`/api/comments?id=${id}&action=dislike`, {
+      method: "PATCH",
+    });
+
+    if (res.ok) {
+      const updatedComment = await res.json();
+      setComments((prevComments) =>
+        updateCommentRecursively(prevComments, id, (comment) => ({
+          ...comment,
+          dislikes: updatedComment.dislikes,
+        }))
+      );
+    } else {
+      console.error("Failed to dislike comment");
+    }
+  };
+
+  const updateCommentRecursively = (
+    comments: CommentData[],
+    id: string,
+    updateFn: (comment: CommentData) => CommentData
+  ): CommentData[] => {
+    return comments.map((comment) => {
+      if (comment.id === id) {
+        return updateFn(comment);
+      }
+      if (comment.replies && comment.replies.length > 0) {
+        return {
+          ...comment,
+          replies: updateCommentRecursively(comment.replies, id, updateFn),
+        };
+      }
+      return comment;
+    });
   };
 
   return (
@@ -145,6 +193,10 @@ export function CommentSection({ postId }: { postId: number }) {
           <CommentCard
             key={comment.id}
             {...comment}
+            initialLikes={comment.likes}
+            initialDislikes={comment.dislikes}
+            likes={comment.likes}
+            dislikes={comment.dislikes}
             onReply={handleReply}
             onEdit={handleEdit}
             onDelete={handleDelete}

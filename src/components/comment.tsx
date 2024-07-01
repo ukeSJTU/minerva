@@ -2,7 +2,41 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { AvatarFallback, AvatarImage, Avatar } from "./ui/avatar";
+import { AvatarFallback, AvatarImage, Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  ThumbsUp,
+  ThumbsDown,
+  MessageSquare,
+  Edit,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+
+// TODO: This interface is duplicated in src/components/comment_section.tsx
+interface CommentData {
+  id: string;
+  content: string;
+  createdAt: string;
+  author: {
+    name: string | null;
+    image: string | null;
+    id: string;
+  };
+  likes: number;
+  dislikes: number;
+  _count: { replies: number };
+  replies?: CommentData[];
+}
 
 interface CommentCardProps {
   id: string;
@@ -13,6 +47,8 @@ interface CommentCardProps {
     image: string | null;
     id: string;
   };
+  initialLikes: number;
+  initialDislikes: number;
   likes: number;
   dislikes: number;
   _count: { replies: number };
@@ -28,8 +64,10 @@ export function CommentCard({
   content,
   createdAt,
   author,
-  likes,
-  dislikes,
+  initialLikes,
+  initialDislikes,
+  likes: propLikes,
+  dislikes: propDislikes,
   _count,
   onReply,
   onEdit,
@@ -44,23 +82,32 @@ export function CommentCard({
   const [replyContent, setReplyContent] = useState("");
   const [showReplies, setShowReplies] = useState(false);
   const [replies, setReplies] = useState<CommentCardProps[]>([]);
+  const [likes, setLikes] = useState(propLikes ?? initialLikes);
+  const [dislikes, setDislikes] = useState(propDislikes ?? initialDislikes);
 
-  const handleEdit = () => {
-    onEdit(id, editedContent);
+  const handleEdit = async () => {
+    await onEdit(id, editedContent);
     setIsEditing(false);
   };
 
-  const handleReply = () => {
-    onReply(id, replyContent);
+  const handleReply = async () => {
+    await onReply(id, replyContent);
     setIsReplying(false);
     setReplyContent("");
+    await fetchReplies();
   };
 
   const fetchReplies = async () => {
     const res = await fetch(`/api/comments?parentId=${id}`);
     if (res.ok) {
       const data = await res.json();
-      setReplies(data.comments);
+      setReplies(
+        data.comments.map((comment: CommentData) => ({
+          ...comment,
+          initialLikes: comment.likes,
+          initialDislikes: comment.dislikes,
+        }))
+      );
     } else {
       console.error("Failed to fetch replies:", await res.text());
     }
@@ -73,120 +120,146 @@ export function CommentCard({
     setShowReplies(!showReplies);
   };
 
+  const handleLike = async () => {
+    setLikes((prevLikes) => prevLikes + 1);
+    try {
+      await onLike(id);
+    } catch (error) {
+      // If the server request fails, revert the optimistic update
+      setLikes((prevLikes) => prevLikes - 1);
+      console.error("Failed to like comment:", error);
+    }
+  };
+
+  const handleDislike = async () => {
+    setDislikes((prevDislikes) => prevDislikes + 1);
+    try {
+      await onDislike(id);
+    } catch (error) {
+      // If the server request fails, revert the optimistic update
+      setDislikes((prevDislikes) => prevDislikes - 1);
+      console.error("Failed to dislike comment:", error);
+    }
+  };
+
   return (
-    <div className="border p-4 mb-4 rounded-lg">
-      <div className="flex items-center mb-2">
-        {author.image && (
-          <Avatar>
-            <AvatarImage
-              src={author.image}
-              alt={author.name ? author.name : "UN"}
-            />
-            <AvatarFallback>
-              {author.name ? author.name[0] : "UN"}
-            </AvatarFallback>
-          </Avatar>
-        )}
-        <span className="font-bold">{author.name}</span>
-        <span className="text-gray-500 ml-2">
-          {new Date(createdAt).toLocaleString()}
-        </span>
-      </div>
-      {isEditing ? (
-        <div>
-          <textarea
-            value={editedContent}
-            onChange={(e) => setEditedContent(e.target.value)}
-            className="w-full p-2 border rounded"
+    <Card className="mb-4">
+      <CardHeader className="flex flex-row items-center space-x-4 pb-2">
+        <Avatar>
+          <AvatarImage
+            src={author.image || undefined}
+            alt={author.name || "User"}
           />
-          <button
-            onClick={handleEdit}
-            className="bg-blue-500 text-white px-2 py-1 rounded mt-2"
-          >
-            Save
-          </button>
-          <button
-            onClick={() => setIsEditing(false)}
-            className="bg-gray-500 text-white px-2 py-1 rounded mt-2 ml-2"
-          >
-            Cancel
-          </button>
+          <AvatarFallback>{author.name?.[0] || "U"}</AvatarFallback>
+        </Avatar>
+        <div>
+          <p className="font-semibold">{author.name}</p>
+          <p className="text-sm text-muted-foreground">
+            {new Date(createdAt).toLocaleDateString()}
+          </p>
         </div>
-      ) : (
-        <p>{content}</p>
-      )}
-      <div className="mt-2">
-        <button onClick={() => onLike(id)} className="text-blue-500 mr-2">
-          Like ({likes})
-        </button>
-        <button onClick={() => onDislike(id)} className="text-red-500 mr-2">
-          Dislike ({dislikes})
-        </button>
+      </CardHeader>
+      <CardContent>
+        {isEditing ? (
+          <div>
+            <Textarea
+              value={editedContent}
+              onChange={(e) => setEditedContent(e.target.value)}
+              className="mb-2"
+            />
+            <Button onClick={handleEdit} className="mr-2">
+              Save
+            </Button>
+            <Button variant="outline" onClick={() => setIsEditing(false)}>
+              Cancel
+            </Button>
+          </div>
+        ) : (
+          <p>{content}</p>
+        )}
+      </CardContent>
+      <CardFooter className="flex justify-between items-center">
+        <div className="flex space-x-2">
+          <Button variant="ghost" size="sm" onClick={handleLike}>
+            <ThumbsUp className="mr-1 h-4 w-4" /> {likes}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleDislike}>
+            <ThumbsDown className="mr-1 h-4 w-4" /> {dislikes}
+          </Button>
+        </div>
         {session?.user && (
-          <>
-            <button
+          <div className="flex space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setIsReplying(!isReplying)}
-              className="text-gray-500 mr-2"
             >
-              Reply
-            </button>
+              <MessageSquare className="mr-1 h-4 w-4" /> Reply
+            </Button>
             {session.user.id === author.id && (
               <>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setIsEditing(true)}
-                  className="text-gray-500 mr-2"
                 >
-                  Edit
-                </button>
-                <button onClick={() => onDelete(id)} className="text-gray-500">
-                  Delete
-                </button>
+                  <Edit className="mr-1 h-4 w-4" /> Edit
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onDelete(id)}>
+                  <Trash2 className="mr-1 h-4 w-4" /> Delete
+                </Button>
               </>
             )}
-          </>
+          </div>
         )}
-      </div>
+      </CardFooter>
       {isReplying && (
-        <div className="mt-2">
-          <textarea
+        <div className="px-4 pb-4">
+          <Textarea
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}
-            className="w-full p-2 border rounded"
             placeholder="Write a reply..."
+            className="mb-2"
           />
-          <button
-            onClick={handleReply}
-            className="bg-blue-500 text-white px-2 py-1 rounded mt-2"
-          >
+          <Button onClick={handleReply} className="mr-2">
             Post Reply
-          </button>
-          <button
-            onClick={() => setIsReplying(false)}
-            className="bg-gray-500 text-white px-2 py-1 rounded mt-2 ml-2"
-          >
+          </Button>
+          <Button variant="outline" onClick={() => setIsReplying(false)}>
             Cancel
-          </button>
+          </Button>
         </div>
       )}
       {_count.replies > 0 && (
-        <button onClick={toggleReplies} className="text-blue-500 mt-2">
-          {showReplies ? "Hide" : "Show"} {_count.replies} repl
-          {_count.replies === 1 ? "y" : "ies"}
-        </button>
+        <div className="px-4 pb-4">
+          <Button variant="link" onClick={toggleReplies}>
+            {showReplies ? (
+              <ChevronUp className="mr-1 h-4 w-4" />
+            ) : (
+              <ChevronDown className="mr-1 h-4 w-4" />
+            )}
+            {showReplies ? "Hide" : "Show"} {_count.replies} repl
+            {_count.replies === 1 ? "y" : "ies"}
+          </Button>
+        </div>
       )}
-
-      {showReplies &&
-        replies.map((reply) => (
-          <CommentCard
-            key={reply.id}
-            {...reply}
-            onReply={onReply}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onLike={onLike}
-            onDislike={onDislike}
-          />
-        ))}
-    </div>
+      {showReplies && (
+        <div className="pl-8">
+          <Separator className="my-4" />
+          {replies.map((reply) => (
+            <CommentCard
+              key={reply.id}
+              {...reply}
+              initialLikes={reply.likes}
+              initialDislikes={reply.dislikes}
+              onReply={onReply}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onLike={onLike}
+              onDislike={onDislike}
+            />
+          ))}
+        </div>
+      )}
+    </Card>
   );
 }
