@@ -1,12 +1,14 @@
 "use client";
 
-import React, { Suspense, useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Separator } from "@/components/ui/separator";
 import { serialize } from "next-mdx-remote/serialize";
+// import MDXContent from "@/components/mdx_content";
+import debounce from "lodash.debounce";
 
 // Dynamic import for the MDXContent component to avoid the following error:
 // async/await is not yet supported in client-side components.
@@ -24,39 +26,61 @@ import {
   LinkIcon,
   TextIcon,
   EyeIcon,
-  CodeIcon,
   MaximizeIcon,
   SettingsIcon,
+  SquareSplitHorizontalIcon,
 } from "lucide-react";
 
 interface MarkdownEditorProps {
   value: string;
+  initialMode: "plain" | "preview" | "hybrid";
   onChange: (value: string) => void;
   onSubmit: () => void;
 }
 
+const debouncedSerialize = debounce(
+  async (content: string, callback: (serialized: any) => void) => {
+    const serialized = await serialize(content);
+    callback(serialized);
+  },
+  300
+);
+
 export function MarkdownEditor({
   value,
+  initialMode = "plain",
   onChange,
   onSubmit,
 }: MarkdownEditorProps) {
-  const [mode, setMode] = useState<"plain" | "preview" | "markdown">("plain");
+  const [mode, setMode] = useState<"plain" | "preview" | "hybrid">(initialMode);
   const [serializedContent, setSerializedContent] = useState<any>(null);
 
+  const updateSerializedContent = useCallback((content: string) => {
+    debouncedSerialize(content, setSerializedContent);
+  }, []);
+
   useEffect(() => {
-    const serializeContent = async () => {
-      if (mode === "preview") {
-        const serialized = await serialize(value);
-        setSerializedContent(serialized);
+    if (mode === "preview" || mode === "hybrid") {
+      updateSerializedContent(value);
+    }
+  }, [value, mode, updateSerializedContent]);
+
+  const handleInsert = useCallback(
+    (syntax: string) => {
+      onChange(value + syntax);
+    },
+    [onChange, value]
+  );
+
+  const handleModeChange = useCallback(
+    (newMode: "plain" | "preview" | "hybrid") => {
+      setMode(newMode);
+      if (newMode === "preview" || newMode === "hybrid") {
+        updateSerializedContent(value);
       }
-    };
-
-    serializeContent();
-  }, [value, mode]);
-
-  const handleInsert = (syntax: string) => {
-    onChange(value + syntax);
-  };
+    },
+    [value, updateSerializedContent]
+  );
 
   return (
     <div className="flex flex-col h-full border rounded-md">
@@ -124,8 +148,8 @@ export function MarkdownEditor({
               <ToggleGroupItem value="preview" aria-label="Preview">
                 <EyeIcon className="h-4 w-4" />
               </ToggleGroupItem>
-              <ToggleGroupItem value="markdown" aria-label="Markdown">
-                <CodeIcon className="h-4 w-4" />
+              <ToggleGroupItem value="hybrid" aria-label="Hybrid">
+                <SquareSplitHorizontalIcon className="h-4 w-4" />
               </ToggleGroupItem>
             </ToggleGroup>
           </div>
@@ -145,9 +169,22 @@ export function MarkdownEditor({
         {mode === "preview" ? (
           <div className="prose prose-lg p-4">
             <Suspense fallback={<div>Loading preview...</div>}>
-              {/* <MDXContent source={value} /> */}
               {serializedContent && <MDXContent source={serializedContent} />}
             </Suspense>
+          </div>
+        ) : mode === "hybrid" ? (
+          <div className="flex h-full">
+            <Textarea
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder="Start typing..."
+              className="h-full w-1/2 resize-none border-0 bg-background p-4 focus:outline-none"
+            />
+            <div className="w-1/2 overflow-auto prose prose-lg p-4">
+              <Suspense fallback={<div>Loading preview...</div>}>
+                {serializedContent && <MDXContent source={serializedContent} />}
+              </Suspense>
+            </div>
           </div>
         ) : (
           <Textarea
