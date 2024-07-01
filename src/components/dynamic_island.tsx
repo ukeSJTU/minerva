@@ -76,7 +76,7 @@ export function DynamicIsland() {
   }
 
   return (
-    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-background/80 text-black rounded-full px-3 py-2 flex items-center space-x-2 z-50 shadow-lg transition-all duration-300 ease-in-out hover:w-auto hover:max-w-md">
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-background/90 text-black rounded-full px-3 py-2 flex items-center space-x-2 z-50 shadow-lg transition-all duration-300 ease-in-out hover:w-auto hover:max-w-md">
       <div className="flex items-center space-x-2 overflow-hidden">
         <SeriesDropdown
           posts={seriesInfo.posts}
