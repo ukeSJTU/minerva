@@ -1,11 +1,12 @@
 "use client";
 
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Separator } from "@/components/ui/separator";
+import { serialize } from "next-mdx-remote/serialize";
 
 // Dynamic import for the MDXContent component to avoid the following error:
 // async/await is not yet supported in client-side components.
@@ -40,6 +41,18 @@ export function MarkdownEditor({
   onSubmit,
 }: MarkdownEditorProps) {
   const [mode, setMode] = useState<"plain" | "preview" | "markdown">("plain");
+  const [serializedContent, setSerializedContent] = useState<any>(null);
+
+  useEffect(() => {
+    const serializeContent = async () => {
+      if (mode === "preview") {
+        const serialized = await serialize(value);
+        setSerializedContent(serialized);
+      }
+    };
+
+    serializeContent();
+  }, [value, mode]);
 
   const handleInsert = (syntax: string) => {
     onChange(value + syntax);
@@ -132,7 +145,8 @@ export function MarkdownEditor({
         {mode === "preview" ? (
           <div className="prose prose-lg p-4">
             <Suspense fallback={<div>Loading preview...</div>}>
-              <MDXContent source={value} />
+              {/* <MDXContent source={value} /> */}
+              {serializedContent && <MDXContent source={serializedContent} />}
             </Suspense>
           </div>
         ) : (
