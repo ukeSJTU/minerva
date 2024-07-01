@@ -8,7 +8,7 @@ export default function PostLayout({
   return (
     <div className="flex flex-col items-center">
       <DynamicIsland />
-      <div className="pt-[40px]">{children}</div>
+      <div className="">{children}</div>
     </div>
   );
 }

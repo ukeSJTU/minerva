@@ -7,6 +7,7 @@ import { CommentSection } from "@/components/comment_section";
 import MDXContent from "@/components/mdx_content";
 import { PostBanner } from "@/components/banner";
 import { Post } from "@prisma/client";
+import { Navbar } from "@/components/navbar";
 
 interface PostPageProps {
   params: { id: string };
@@ -51,19 +52,17 @@ const PostPage = ({ params }: PostPageProps) => {
     return notFound();
   }
 
-  const bannerImageUrl = postData.bannerImgURL || "/images/banner_2.jpg";
-
   return (
-    <div>
+    <div className="w-[100vw]">
       <PostBanner
-        imageUrl={bannerImageUrl}
-        title={postData.title}
-        views={postData.views || 0}
+        post={postData}
         onCommentClick={() => {
           const commentsSection = document.getElementById("comments");
           commentsSection?.scrollIntoView({ behavior: "smooth" });
         }}
-      />
+      >
+        <Navbar />
+      </PostBanner>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold mb-4">{postData.title}</h1>
         <div className="prose prose-lg">
