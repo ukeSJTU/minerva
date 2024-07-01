@@ -64,7 +64,6 @@ const PostPage = ({ params }: PostPageProps) => {
         <Navbar />
       </PostBanner>
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-4">{postData.title}</h1>
         <div className="prose prose-lg">
           {serializedContent && <MDXContent source={serializedContent} />}
         </div>
