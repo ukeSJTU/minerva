@@ -100,7 +100,14 @@ export async function DELETE(
       include: { _count: { select: { posts: true } } },
     });
 
-    if (category?._count.posts > 0) {
+    if (!category) {
+      return NextResponse.json(
+        { error: "Category not found" },
+        { status: 404 }
+      );
+    }
+
+    if (category._count.posts > 0) {
       return NextResponse.json(
         { error: "Cannot delete category with existing posts" },
         { status: 400 }
