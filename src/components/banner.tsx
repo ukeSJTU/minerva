@@ -36,7 +36,7 @@ const Banner: React.FC<BannerProps> = ({
         objectFit="cover"
         className="z-0"
       />
-      <div className="absolute inset-0 bg-black bg-opacity-50 z-10" />
+      <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-filter backdrop-blur-md z-10" />
       {children}
     </div>
   );
@@ -91,6 +91,7 @@ interface PostBannerProps {
   title: string;
   views: number;
   onCommentClick: () => void;
+  children?: ReactNode;
 }
 
 const PostBanner: React.FC<PostBannerProps> = ({
@@ -98,22 +99,29 @@ const PostBanner: React.FC<PostBannerProps> = ({
   title,
   views,
   onCommentClick,
+  children,
 }) => {
   return (
-    <Banner imageUrl={imageUrl}>
-      <h1 className="text-3xl md:text-4xl font-bold mb-2 text-white">
-        {title}
-      </h1>
-      <div className="flex items-center text-white mb-4">
-        <Eye size={20} className="mr-2" />
-        <span>{views} views</span>
+    <Banner imageUrl={imageUrl} className="h-[50vh]">
+      <div className="absolute inset-0 z-20">
+        {children}
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 text-white">
+            {title}
+          </h1>
+          <div className="flex items-center text-white mb-4">
+            <Eye size={20} className="mr-2" />
+            <span>{views} views</span>
+          </div>
+          <Button
+            onClick={onCommentClick}
+            variant="outline"
+            className="mt-4 bg-white text-black px-6 py-2 rounded-full hover:bg-opacity-80 transition-colors"
+          >
+            Jump to Comments
+          </Button>
+        </div>
       </div>
-      <Button
-        onClick={onCommentClick}
-        className="bg-white text-black px-4 py-2 rounded-full hover:bg-opacity-80 transition-colors"
-      >
-        Jump to Comments
-      </Button>
     </Banner>
   );
 };
