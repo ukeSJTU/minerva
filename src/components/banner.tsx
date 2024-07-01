@@ -23,11 +23,7 @@ const Banner: React.FC<BannerProps> = ({
 }) => {
   return (
     <div
-      className={cn(
-        "relative w-full",
-        fullScreen ? "h-screen" : "h-64 md:h-96",
-        className
-      )}
+      className={cn("relative w-full", fullScreen ? "h-screen" : "", className)}
     >
       <Image
         src={imageUrl}
