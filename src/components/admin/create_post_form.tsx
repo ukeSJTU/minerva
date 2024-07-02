@@ -229,7 +229,17 @@ export function CreatePostForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Category</FormLabel>
-                <div className="flex flex-wrap gap-2 mb-2"></div>{" "}
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {field.value ? (
+                    <CategoryBadge
+                      name={
+                        categories.find(
+                          (category) => category.id === field.value
+                        )?.name || ""
+                      }
+                    />
+                  ) : null}
+                </div>
                 {/* This is a placeholder div to align ui */}
                 <Popover>
                   <PopoverTrigger asChild>
@@ -238,7 +248,7 @@ export function CreatePostForm() {
                         variant="outline"
                         role="combobox"
                         className={cn(
-                          "w-[200px] justify-between",
+                          "w-full justify-between",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -251,7 +261,7 @@ export function CreatePostForm() {
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[200px] p-0">
+                  <PopoverContent className="w-full p-0">
                     <Command>
                       <CommandInput placeholder="Search category..." />
                       <CommandEmpty>No category found.</CommandEmpty>
@@ -315,7 +325,7 @@ export function CreatePostForm() {
                         variant="outline"
                         role="combobox"
                         className={cn(
-                          "w-[200px] justify-between",
+                          "w-full justify-between",
                           !field.value.length && "text-muted-foreground"
                         )}
                       >
@@ -326,7 +336,7 @@ export function CreatePostForm() {
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[200px] p-0">
+                  <PopoverContent className="w-full p-0">
                     <Command>
                       <CommandInput placeholder="Search tag..." />
                       <CommandEmpty>No tag found.</CommandEmpty>
@@ -395,7 +405,7 @@ export function CreatePostForm() {
                         variant="outline"
                         role="combobox"
                         className={cn(
-                          "w-[200px] justify-between",
+                          "w-full justify-between",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -406,7 +416,7 @@ export function CreatePostForm() {
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[200px] p-0">
+                  <PopoverContent className="w-full p-0">
                     <Command>
                       <CommandInput placeholder="Search tag..." />
                       <CommandEmpty>No series found.</CommandEmpty>
@@ -432,7 +442,8 @@ export function CreatePostForm() {
                         ))}
                       </CommandGroup>
                     </Command>
-                    {/* <div className="p-2">
+                    {/* TODO: implement create series
+                    <div className="p-2">
                     <Input
                       placeholder="Create new tag"
                       onKeyDown={async (e) => {
