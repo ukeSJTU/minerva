@@ -57,8 +57,8 @@ export function CreatePostForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
-  const [series, setSeries] = useState<Series[]>([]);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [series, setSeries] = useState<Series[]>([]);
 
   const form = useForm<PostFormValues>({
     resolver: zodResolver(postSchema),
@@ -222,213 +222,217 @@ export function CreatePostForm() {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="categoryId"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Category</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-[200px] justify-between",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value
-                        ? categories.find(
-                            (category) => category.id === field.value
-                          )?.name
-                        : "Select category"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search category..." />
-                    <CommandEmpty>No category found.</CommandEmpty>
-                    <CommandGroup>
-                      {categories.map((category) => (
-                        <CommandItem
-                          value={category.name}
-                          key={category.id}
-                          onSelect={() => {
-                            form.setValue("categoryId", category.id);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              category.id === field.value
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          {category.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                  <div className="p-2">
-                    <Input
-                      placeholder="Create new category"
-                      onKeyDown={async (e) => {
-                        if (e.key === "Enter") {
-                          const newCategory = await createCategory(
-                            e.currentTarget.value
-                          );
-                          form.setValue("categoryId", newCategory.id);
-                          e.currentTarget.value = "";
-                        }
-                      }}
-                    />
-                  </div>
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="tagIds"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tags</FormLabel>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {selectedTags.map((tag) => (
-                  <TagBadge key={tag.id} name={tag.name} />
-                ))}
-              </div>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-[200px] justify-between",
-                        !field.value.length && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value.length > 0
-                        ? `${field.value.length} selected`
-                        : "Select tags"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search tag..." />
-                    <CommandEmpty>No tag found.</CommandEmpty>
-                    <CommandGroup>
-                      {tags.map((tag) => (
-                        <CommandItem
-                          value={tag.name}
-                          key={tag.id}
-                          onSelect={() => {
-                            const updatedTags = field.value.includes(tag.id)
-                              ? field.value.filter((id) => id !== tag.id)
-                              : [...field.value, tag.id];
-                            form.setValue("tagIds", updatedTags);
-                            setSelectedTags(
-                              tags.filter((t) => updatedTags.includes(t.id))
+        <div className="flex space-x-4 justify-start">
+          <FormField
+            control={form.control}
+            name="categoryId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <div className="flex flex-wrap gap-2 mb-2"></div>{" "}
+                {/* This is a placeholder div to align ui */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-[200px] justify-between",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value
+                          ? categories.find(
+                              (category) => category.id === field.value
+                            )?.name
+                          : "Select category"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[200px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search category..." />
+                      <CommandEmpty>No category found.</CommandEmpty>
+                      <CommandGroup>
+                        {categories.map((category) => (
+                          <CommandItem
+                            value={category.name}
+                            key={category.id}
+                            onSelect={() => {
+                              form.setValue("categoryId", category.id);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                category.id === field.value
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            {category.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                    <div className="p-2">
+                      <Input
+                        placeholder="Create new category"
+                        onKeyDown={async (e) => {
+                          if (e.key === "Enter") {
+                            const newCategory = await createCategory(
+                              e.currentTarget.value
                             );
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              field.value.includes(tag.id)
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          {tag.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                  <div className="p-2">
-                    <Input
-                      placeholder="Create new tag"
-                      onKeyDown={async (e) => {
-                        if (e.key === "Enter") {
-                          const newTag = await createTag(e.currentTarget.value);
-                          const updatedTags = [...field.value, newTag.id];
-                          form.setValue("tagIds", updatedTags);
-                          setSelectedTags([...selectedTags, newTag]);
-                          e.currentTarget.value = "";
-                        }
-                      }}
-                    />
-                  </div>
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="seriesId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Series</FormLabel>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {selectedTags.map((tag) => (
-                  <TagBadge key={tag.id} name={tag.name} />
-                ))}
-              </div>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-[200px] justify-between",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value
-                        ? series.find((s) => s.id === field.value)?.title
-                        : "Select series"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search tag..." />
-                    <CommandEmpty>No series found.</CommandEmpty>
-                    <CommandGroup>
-                      {series.map((s) => (
-                        <CommandItem
-                          value={s.title}
-                          key={s.id}
-                          onSelect={() => {
-                            form.setValue("seriesId", s.id);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              s.id === field.value ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {s.title}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                  {/* <div className="p-2">
+                            form.setValue("categoryId", newCategory.id);
+                            e.currentTarget.value = "";
+                          }
+                        }}
+                      />
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="tagIds"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tags</FormLabel>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {selectedTags.map((tag) => (
+                    <TagBadge key={tag.id} name={tag.name} />
+                  ))}
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-[200px] justify-between",
+                          !field.value.length && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value.length > 0
+                          ? `${field.value.length} selected`
+                          : "Select tags"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[200px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search tag..." />
+                      <CommandEmpty>No tag found.</CommandEmpty>
+                      <CommandGroup>
+                        {tags.map((tag) => (
+                          <CommandItem
+                            value={tag.name}
+                            key={tag.id}
+                            onSelect={() => {
+                              const updatedTags = field.value.includes(tag.id)
+                                ? field.value.filter((id) => id !== tag.id)
+                                : [...field.value, tag.id];
+                              form.setValue("tagIds", updatedTags);
+                              setSelectedTags(
+                                tags.filter((t) => updatedTags.includes(t.id))
+                              );
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value.includes(tag.id)
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            {tag.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                    <div className="p-2">
+                      <Input
+                        placeholder="Create new tag"
+                        onKeyDown={async (e) => {
+                          if (e.key === "Enter") {
+                            const newTag = await createTag(
+                              e.currentTarget.value
+                            );
+                            const updatedTags = [...field.value, newTag.id];
+                            form.setValue("tagIds", updatedTags);
+                            setSelectedTags([...selectedTags, newTag]);
+                            e.currentTarget.value = "";
+                          }
+                        }}
+                      />
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="seriesId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Series</FormLabel>
+                <div className="flex flex-wrap gap-2 mb-2"></div>
+                {/* This is a placeholder div to align ui */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-[200px] justify-between",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value
+                          ? series.find((s) => s.id === field.value)?.title
+                          : "Select series"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[200px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search tag..." />
+                      <CommandEmpty>No series found.</CommandEmpty>
+                      <CommandGroup>
+                        {series.map((s) => (
+                          <CommandItem
+                            value={s.title}
+                            key={s.id}
+                            onSelect={() => {
+                              form.setValue("seriesId", s.id);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                s.id === field.value
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            {s.title}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                    {/* <div className="p-2">
                     <Input
                       placeholder="Create new tag"
                       onKeyDown={async (e) => {
@@ -442,12 +446,13 @@ export function CreatePostForm() {
                       }}
                     />
                   </div> */}
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Creating..." : "Create Post"}
         </Button>
