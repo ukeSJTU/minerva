@@ -30,6 +30,11 @@ import {
   SettingsIcon,
   SquareSplitHorizontalIcon,
 } from "lucide-react";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "./ui/resizable";
 
 interface MarkdownEditorProps {
   value: string;
@@ -174,17 +179,26 @@ export function MarkdownEditor({
           </div>
         ) : mode === "hybrid" ? (
           <div className="flex h-full">
-            <Textarea
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              placeholder="Start typing..."
-              className="h-full w-1/2 resize-none border-0 bg-background p-4 focus:outline-none"
-            />
-            <div className="w-1/2 overflow-auto prose prose-lg p-4">
-              <Suspense fallback={<div>Loading preview...</div>}>
-                {serializedContent && <MDXContent source={serializedContent} />}
-              </Suspense>
-            </div>
+            <ResizablePanelGroup direction="horizontal">
+              <ResizablePanel>
+                <Textarea
+                  value={value}
+                  onChange={(e) => onChange(e.target.value)}
+                  placeholder="Start typing..."
+                  className="h-full w-full resize-none border-0 bg-background p-4 focus:outline-none"
+                />
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+              <ResizablePanel>
+                <div className="overflow-auto prose prose-lg p-4">
+                  <Suspense fallback={<div>Loading preview...</div>}>
+                    {serializedContent && (
+                      <MDXContent source={serializedContent} />
+                    )}
+                  </Suspense>
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
           </div>
         ) : (
           <Textarea
