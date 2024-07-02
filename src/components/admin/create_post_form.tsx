@@ -222,7 +222,8 @@ export function CreatePostForm() {
             </FormItem>
           )}
         />
-        <div className="flex space-x-4 justify-start">
+        {/* The div below contains three fields setting the category, tags and series of the new post */}
+        <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
           <FormField
             control={form.control}
             name="categoryId"
