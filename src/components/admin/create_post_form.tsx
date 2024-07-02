@@ -34,6 +34,7 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CategoryBadge from "@/components/badges/category";
 import TagBadge from "@/components/badges/tag";
+import { Series } from "@prisma/client";
 
 const postSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -42,6 +43,8 @@ const postSchema = z.object({
   published: z.boolean(),
   categoryId: z.number().min(1, "Category is required"),
   tagIds: z.array(z.number()).min(1, "At least one tag is required"),
+  seriesId: z.number().nullable(),
+  createdAt: z.date(),
 });
 
 type PostFormValues = z.infer<typeof postSchema>;
@@ -54,6 +57,7 @@ export function CreatePostForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [series, setSeries] = useState<Series[]>([]);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 
   const form = useForm<PostFormValues>({
@@ -65,12 +69,15 @@ export function CreatePostForm() {
       published: false,
       categoryId: 0,
       tagIds: [],
+      seriesId: null,
+      createdAt: new Date(),
     },
   });
 
   useEffect(() => {
     fetchCategories();
     fetchTags();
+    fetchSries();
   }, []);
 
   const fetchCategories = async () => {
@@ -96,6 +103,12 @@ export function CreatePostForm() {
     const response = await fetch("/api/tags");
     const data = await response.json();
     setTags(data);
+  };
+
+  const fetchSries = async () => {
+    const response = await fetch("/api/series");
+    const data = await response.json();
+    setSeries(data);
   };
 
   const createCategory = async (name: string) => {
@@ -356,6 +369,79 @@ export function CreatePostForm() {
                       }}
                     />
                   </div>
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="seriesId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Series</FormLabel>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {selectedTags.map((tag) => (
+                  <TagBadge key={tag.id} name={tag.name} />
+                ))}
+              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        "w-[200px] justify-between",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value
+                        ? series.find((s) => s.id === field.value)?.title
+                        : "Select series"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search tag..." />
+                    <CommandEmpty>No series found.</CommandEmpty>
+                    <CommandGroup>
+                      {series.map((s) => (
+                        <CommandItem
+                          value={s.title}
+                          key={s.id}
+                          onSelect={() => {
+                            form.setValue("seriesId", s.id);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              s.id === field.value ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {s.title}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                  {/* <div className="p-2">
+                    <Input
+                      placeholder="Create new tag"
+                      onKeyDown={async (e) => {
+                        if (e.key === "Enter") {
+                          const newTag = await createTag(e.currentTarget.value);
+                          const updatedTags = [...field.value, newTag.id];
+                          form.setValue("tagIds", updatedTags);
+                          setSelectedTags([...selectedTags, newTag]);
+                          e.currentTarget.value = "";
+                        }
+                      }}
+                    />
+                  </div> */}
                 </PopoverContent>
               </Popover>
               <FormMessage />
