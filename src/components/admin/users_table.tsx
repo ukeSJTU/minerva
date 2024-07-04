@@ -1,18 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  ColumnDef,
-  flexRender,
-  SortingState,
-} from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect, useCallback } from "react";
+import { User } from "@prisma/client";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -21,109 +12,49 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
-type User = {
-  id: string;
-  name: string | null;
-  email: string;
-  isAdmin: boolean;
-};
+interface UsersResponse {
+  users: User[];
+  currentPage: number;
+  totalPages: number;
+  totalUsers: number;
+}
 
 export function UsersTable() {
   const [users, setUsers] = useState<User[]>([]);
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [filtering, setFiltering] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const columns: ColumnDef<User>[] = [
-    {
-      accessorKey: "name",
-      header: "Name",
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
-    },
-    {
-      accessorKey: "isAdmin",
-      header: "Admin Status",
-      cell: ({ row }) => (row.original.isAdmin ? "Admin" : "User"),
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant={row.original.isAdmin ? "destructive" : "default"}
-              size="sm"
-            >
-              {row.original.isAdmin ? "Remove Admin" : "Make Admin"}
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Action</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to{" "}
-                {row.original.isAdmin
-                  ? "remove admin rights from"
-                  : "make admin"}
-                :
-                <br />
-                <strong>
-                  {row.original.name} ({row.original.email})
-                </strong>
-                ?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() =>
-                  handleToggleAdminStatus(
-                    row.original.id,
-                    !row.original.isAdmin
-                  )
-                }
-              >
-                Confirm
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      ),
-    },
-  ];
+  const limit = 10; // Number of users per page
+
+  const fetchUsers = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `/api/users?page=${currentPage}&limit=${limit}&search=${search}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch users");
+      const data: UsersResponse = await response.json();
+      setUsers(data.users);
+      setTotalPages(data.totalPages);
+      setTotalUsers(data.totalUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentPage, search]);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch("/api/admin/users");
-      if (!response.ok) throw new Error("Failed to fetch users");
-      const data: User[] = await response.json();
-      setUsers(data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
+  }, [currentPage, search, fetchUsers]);
 
   const handleToggleAdminStatus = async (userId: string, isAdmin: boolean) => {
     try {
-      const response = await fetch("/api/admin/users", {
+      const response = await fetch("/api/users", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, isAdmin }),
@@ -135,76 +66,71 @@ export function UsersTable() {
     }
   };
 
-  const table = useReactTable({
-    data: users,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    state: {
-      sorting,
-      globalFilter: filtering,
-    },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setFiltering,
-  });
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Users</h2>
-      </div>
       <Input
-        placeholder="Filter users..."
-        value={filtering}
-        onChange={(e) => setFiltering(e.target.value)}
+        placeholder="Search users..."
+        value={search}
+        onChange={handleSearch}
         className="mb-4"
       />
       <Table>
         <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Admin Status</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id}>
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ))}
+          {users.map((user) => (
+            <TableRow key={user.id}>
+              <TableCell>{user.name}</TableCell>
+              <TableCell>{user.email}</TableCell>
+              <TableCell>{user.isAdmin ? "Admin" : "User"}</TableCell>
+              <TableCell>
+                <Button
+                  onClick={() =>
+                    handleToggleAdminStatus(user.id, !user.isAdmin)
+                  }
+                  variant={user.isAdmin ? "destructive" : "default"}
+                >
+                  {user.isAdmin ? "Remove Admin" : "Make Admin"}
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+      <div className="flex justify-between items-center mt-4">
+        <div>
+          Showing {users.length} of {totalUsers} users
+        </div>
+        <div className="flex space-x-2">
+          <Button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1 || isLoading}
+          >
+            Previous
+          </Button>
+          <span className="py-2">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            disabled={currentPage === totalPages || isLoading}
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );
