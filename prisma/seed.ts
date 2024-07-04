@@ -1,5 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { faker } from "@faker-js/faker";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const prisma = new PrismaClient();
 
@@ -28,7 +31,34 @@ function generateMarkdownContent(): string {
   return content;
 }
 
+async function setupInitialAdminUser() {
+  // assign an initial admin user
+  const initialAdminEmail = process.env.INITIAL_ADMIN_EMAIL;
+
+  if (!initialAdminEmail) {
+    console.warn("INITIAL_ADMIN_EMAIL not set. Skipping admin user creation.");
+    return;
+  }
+
+  const existingAdmin = await prisma.user.findUnique({
+    where: { email: initialAdminEmail },
+  });
+
+  if (existingAdmin) {
+    console.log("Admin user already exists. Updating isAdmin status.");
+    await prisma.user.update({
+      where: { email: initialAdminEmail },
+      data: { isAdmin: true },
+    });
+  } else {
+    console.warn("No admin user found. Skipping admin user creation.");
+    return;
+  }
+}
+
 async function main() {
+  await setupInitialAdminUser();
+
   // Create categories (unchanged)
   const techCategory = await prisma.category.upsert({
     where: { name: "Technology" },
