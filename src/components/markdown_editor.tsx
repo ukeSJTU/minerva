@@ -75,8 +75,42 @@ export function MarkdownEditor({
   }, [value, mode, updateSerializedContent]);
 
   const handleInsert = useCallback(
-    (syntax: string) => {
-      onChange(value + syntax);
+    (syntax: string, wrapSyntax: boolean = false) => {
+      const textarea = document.querySelector(
+        "textarea"
+      ) as HTMLTextAreaElement;
+      if (!textarea) return;
+
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selectedText = value.substring(start, end);
+
+      let newText;
+      if (wrapSyntax && selectedText) {
+        // If text is selected, wrap it with the syntax
+        const prefix = syntax.split("text")[0];
+        const suffix = syntax.split("text")[1] || prefix;
+        newText =
+          value.substring(0, start) +
+          prefix +
+          selectedText +
+          suffix +
+          value.substring(end);
+      } else {
+        // If no text is selected or wrapSyntax is false, insert as before
+        newText = value.substring(0, start) + syntax + value.substring(end);
+      }
+
+      onChange(newText);
+
+      // Set cursor position after the insertion
+      setTimeout(() => {
+        textarea.focus();
+        const newCursorPos = wrapSyntax
+          ? end + syntax.length
+          : start + syntax.length;
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+      }, 0);
     },
     [onChange, value]
   );
@@ -112,7 +146,7 @@ export function MarkdownEditor({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleInsert("**bold**")}
+              onClick={() => handleInsert("**text**", true)}
             >
               <BoldIcon className="h-4 w-4" />
               <span className="sr-only">Bold</span>
@@ -120,7 +154,7 @@ export function MarkdownEditor({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleInsert("*italic*")}
+              onClick={() => handleInsert("*text*", true)}
             >
               <ItalicIcon className="h-4 w-4" />
               <span className="sr-only">Italic</span>
@@ -128,7 +162,7 @@ export function MarkdownEditor({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleInsert("~~strikethrough~~")}
+              onClick={() => handleInsert("~~text~~", true)}
             >
               <StrikethroughIcon className="h-4 w-4" />
               <span className="sr-only">Strikethrough</span>
