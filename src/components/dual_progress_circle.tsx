@@ -30,10 +30,10 @@ const DualProgressCircle: React.FC<DualProgressCircleProps> = ({
       <div
         style={{
           position: "absolute",
-          width: "92%",
-          height: "92%",
-          top: "4%",
-          left: "4%",
+          width: "86%",
+          height: "86%",
+          top: "7%",
+          left: "7%",
         }}
       >
         <CircularProgressbar
