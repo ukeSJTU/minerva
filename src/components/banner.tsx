@@ -62,23 +62,23 @@ const HomepageBanner: React.FC<HomepageBannerProps> = ({
 
   return (
     <Banner imageUrl={imageUrl} fullScreen>
-      <div className="absolute inset-0 z-20">
-        {children}
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+      <div className="absolute inset-0 z-20 flex flex-col">
+        <div className="z-30">{children}</div>
+        <div className="flex-grow flex flex-col items-center justify-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-4 text-white">
             {title}
           </h1>
           <p className="text-lg md:text-xl max-w-2xl text-center px-4 text-white italic">
             &quot;{quote}&quot;
           </p>
-          <Button
-            onClick={handleScroll}
-            variant="outline"
-            className="absolute bottom-8 left-1/2 transform -translate-x-1/2  animate-bounce bg-transparent border-transparent"
-          >
-            <ChevronDown size={32} />
-          </Button>
         </div>
+        <Button
+          onClick={handleScroll}
+          variant="outline"
+          className="self-center mb-8 animate-bounce bg-transparent border-transparent"
+        >
+          <ChevronDown size={32} />
+        </Button>
       </div>
     </Banner>
   );
