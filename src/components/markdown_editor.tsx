@@ -29,6 +29,7 @@ import {
   MaximizeIcon,
   SettingsIcon,
   SquareSplitHorizontalIcon,
+  MinimizeIcon,
 } from "lucide-react";
 import {
   ResizableHandle,
@@ -41,6 +42,7 @@ interface MarkdownEditorProps {
   initialMode?: "plain" | "preview" | "hybrid";
   onChange: (value: string) => void;
   onSubmit: () => void;
+  initFullScreen?: boolean;
 }
 
 const debouncedSerialize = debounce(
@@ -56,9 +58,11 @@ export function MarkdownEditor({
   initialMode = "plain",
   onChange,
   onSubmit,
+  initFullScreen = false,
 }: MarkdownEditorProps) {
   const [mode, setMode] = useState<"plain" | "preview" | "hybrid">(initialMode);
   const [serializedContent, setSerializedContent] = useState<any>(null);
+  const [isFullScreen, setIsFullScreen] = useState<boolean>(initFullScreen);
 
   const updateSerializedContent = useCallback((content: string) => {
     debouncedSerialize(content, setSerializedContent);
@@ -87,8 +91,16 @@ export function MarkdownEditor({
     [value, updateSerializedContent]
   );
 
+  const toggleFullScreen = useCallback(() => {
+    setIsFullScreen((prev) => !prev);
+  }, []);
+
   return (
-    <div className="flex flex-col h-full border rounded-md">
+    <div
+      className={`flex flex-col border rounded-md transition-all duration-300 ease-in-out ${
+        isFullScreen ? "fixed inset-0 z-50" : "h-full"
+      }`}
+    >
       <div className="bg-background border-b flex items-center justify-between px-4 py-2">
         <div className="flex items-center gap-2">
           <Button
@@ -160,9 +172,15 @@ export function MarkdownEditor({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon">
-            <MaximizeIcon className="h-4 w-4" />
-            <span className="sr-only">Maximize</span>
+          <Button variant="ghost" size="icon" onClick={toggleFullScreen}>
+            {isFullScreen ? (
+              <MinimizeIcon className="h-4 w-4" />
+            ) : (
+              <MaximizeIcon className="h-4 w-4" />
+            )}
+            <span className="sr-only">
+              {isFullScreen ? "Exit Full Screen" : "Full Screen"}
+            </span>
           </Button>
           <Button variant="ghost" size="icon">
             <SettingsIcon className="h-4 w-4" />
