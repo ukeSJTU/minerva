@@ -5,8 +5,8 @@ export function Sidebar({
   activeSession,
   setActiveSection,
 }: {
-  activeSession: "posts" | "series";
-  setActiveSection: (section: "posts" | "series") => void;
+  activeSession: "posts" | "series" | "users";
+  setActiveSection: (section: "posts" | "series" | "users") => void;
 }) {
   return (
     <div className="w-64 bg-gray-100 p-4">
@@ -28,6 +28,15 @@ export function Sidebar({
           <Layers className="mr-2 h-4 w-4" />
           Series
         </Button>
+        <Button
+          variant="ghost"
+          className={`w-full justify-start ${activeSession === "users" ? "bg-gray-200" : ""}`}
+          onClick={() => setActiveSection("users")}
+        >
+          <Layers className="mr-2 h-4 w-4" />
+          Users
+        </Button>
+
         {/* Add more navigation items as needed */}
       </nav>
     </div>
