@@ -6,8 +6,9 @@ import { notFound } from "next/navigation";
 import { CommentSection } from "@/components/comment_section";
 import MDXContent from "@/components/mdx_content";
 import { PostBanner } from "@/components/banner";
-import { Post } from "@prisma/client";
+import { Comment, Post } from "@prisma/client";
 import { Navbar } from "@/components/navbar";
+import FloatingSideBar from "@/components/posts/side_floating_bar";
 
 interface PostPageProps {
   params: { id: string };
@@ -52,23 +53,34 @@ const PostPage = ({ params }: PostPageProps) => {
     return notFound();
   }
 
+  const handleCommentClick = () => {
+    const commentsSection = document.getElementById("comments");
+    commentsSection?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <div className="w-[100vw]">
-      <PostBanner
-        post={postData}
-        onCommentClick={() => {
-          const commentsSection = document.getElementById("comments");
-          commentsSection?.scrollIntoView({ behavior: "smooth" });
-        }}
-      >
+    <div className="w-full relative">
+      <PostBanner post={postData} onCommentClick={handleCommentClick}>
         <Navbar />
       </PostBanner>
-      <div className="container mx-auto px-4 py-8">
-        <div className="prose prose-lg">
-          {serializedContent && <MDXContent source={serializedContent} />}
-        </div>
-        <div id="comments">
-          <CommentSection postId={parseInt(id)} />
+      <div className="container mx-auto px-4 py-8 flex">
+        <FloatingSideBar
+          likes={postData.likes}
+          commentCount={postData.comments?.length || 0}
+          onCommentClick={handleCommentClick}
+          onScrollToTop={handleScrollToTop}
+        />
+        <div className="flex-grow ml-16">
+          <div className="prose prose-lg max-w-4xl mx-auto">
+            {serializedContent && <MDXContent source={serializedContent} />}
+          </div>
+          <div id="comments" className="mt-8">
+            <CommentSection postId={parseInt(id)} />
+          </div>
         </div>
       </div>
     </div>
