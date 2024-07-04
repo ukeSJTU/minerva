@@ -1,10 +1,11 @@
 import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import prisma from "./lib/prisma";
+import type { Adapter } from "next-auth/adapters";
+import prisma from "@/lib/prisma";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma) as Adapter,
   providers: [
     GitHub({
       clientId: process.env.GITHUB_ID,
@@ -19,6 +20,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       if (user) {
         token.id = user.id;
+        token.isAdmin = user.isAdmin;
       }
       return token;
     },
@@ -29,6 +31,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       if (session?.user) {
         session.user.id = token.id as string;
+        session.user.isAdmin = token.isAdmin;
       }
       return session;
     },
