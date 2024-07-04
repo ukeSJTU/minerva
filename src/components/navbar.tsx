@@ -17,12 +17,15 @@ export function Navbar() {
   const { data: session, status } = useSession();
 
   return (
-    <nav className="bg-transparent text-white p-4 z-10 relative">
+    <nav className="bg-transparent text-white p-4 z-50">
       <div className="container mx-auto flex justify-between items-center">
-        <ul className="flex space-x-4">
+        <ul className="flex space-x-6">
           {navItems.map((item) => (
             <li key={item.title}>
-              <Link href={item.href} className="hover:underline">
+              <Link
+                href={item.href}
+                className="hover:text-gray-300 transition-colors"
+              >
                 {item.title}
               </Link>
             </li>
@@ -40,12 +43,20 @@ export function Navbar() {
                   {session.user?.name?.[0] || "U"}
                 </AvatarFallback>
               </Avatar>
-              <Button variant="ghost" onClick={() => signOut()}>
+              <Button
+                variant="ghost"
+                onClick={() => signOut()}
+                className="text-white border-white hover:bg-white hover:text-black"
+              >
                 Logout
               </Button>
             </>
           ) : (
-            <Button variant="ghost" onClick={() => signIn()}>
+            <Button
+              variant="ghost"
+              onClick={() => signIn()}
+              className="text-white border-white hover:bg-white hover:text-black"
+            >
               Login
             </Button>
           )}
