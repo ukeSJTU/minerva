@@ -17,9 +17,21 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const json = await request.json();
+    const { title, description, slug, createdAt, postIds } = json;
 
     const series = await prisma.series.create({
-      data: json,
+      data: {
+        title,
+        description,
+        slug,
+        createdAt: new Date(createdAt),
+        posts: {
+          connect: postIds.map((id: number) => ({ id })),
+        },
+      },
+      include: {
+        posts: true,
+      },
     });
 
     return NextResponse.json(series);
